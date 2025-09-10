@@ -1,12 +1,23 @@
 {
   "name": "ytsearch.js",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Youtube content search warpper for nodejs",
-  "main": "src/main.js",
-  "dependencies": {
-    "axios": "^0.26.1"
+  "main": "dist/main.cjs",
+  "module": "dist/main.mjs",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "require": "./dist/main.cjs",
+      "import": "./dist/main.mjs"
+    }
   },
-  "devDependencies": {},
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "axios": "^1.11.0"
+  },
   "scripts": {
     "test": ""
   },
@@ -22,7 +33,7 @@
     "ytsearch",
     "ytsearch.js"
   ],
-  "author": "rjryt <support@rjryt.me>",
+  "author": "RJRYT <rjryt@outlook.com> (https://rjryt.github.io/)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/RJRYT/ytsearch.js/issues"

@@ -1,56 +1,117 @@
 # ytsearch.js
 
-  [![NPM Version][npm-version-image]][npm-url]
-  [![NPM Install Size][npm-install-size-image]][npm-install-size-url]
-  [![NPM Downloads][npm-downloads-image]][npm-downloads-url]
+[![NPM Version][npm-version-image]][npm-url]
+[![NPM Downloads][npm-downloads-image]][npm-downloads-url]
+[![NPM Install Size][npm-install-size-image]][npm-install-size-url]
 
-Youtube content search warpper for nodejs
+> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube video results without using the official API.
 
-# Installation
+---
 
-This is a [Node.js](https://nodejs.org/en/) module available through the
-[npm registry](https://www.npmjs.com/).
+## 🚀 Installation
 
-Before installing, [download and install Node.js](https://nodejs.org/en/download/).
-Node.js 0.10 or higher is required.
+This package is available via [npm](https://www.npmjs.com/):
 
-If this is a brand new project, make sure to create a `package.json` first with
-the [`npm init` command](https://docs.npmjs.com/creating-a-package-json-file).
-
-Installation is done using the
-[`npm install` command](https://docs.npmjs.com/getting-started/installing-npm-packages-locally):
-
-
-``` pip
+```bash
 npm install ytsearch.js
 ```
 
+Requires **Node.js v14+** (ESM supported).
 
-# Usage
+---
 
-``` js
-const ytsearch = require('ytsearch.js');
+## 📦 Usage
+
+### CommonJS
+
+```js
+const ytsearch = require("ytsearch.js");
+
+(async () => {
+  const results = await ytsearch("Black Panther");
+  results.slice(0, 5).forEach(video => {
+    console.log(video.title, video.shortViewCount);
+  });
+})();
+```
+
+### ES Modules
+
+```js
+import ytsearch from "ytsearch.js";
 
 const results = await ytsearch("Black Panther");
-for(i=0;i<6;i++) console.log(results[i].title, results[i].shortViewCount)
+results.slice(0, 5).forEach(video => {
+  console.log(video.title, video.shortViewCount);
+});
+```
 
-//Output
+### Example Output
 
-Marvel Studios Black Panther - Official Trailer 50.5M
+```
+Marvel Studios Black Panther - Official Trailer  50.5M
+Wakanda Battle - I'm Not Dead Scene              19.9M
+Hiding in the Shadows | The Real Black Panther   4.2M
+Meet The K2 Black Panther – Best Tank            13K
+Black Panther - Car Chase Scene (4K UHD)         428.8K
+```
 
-Wakanda Battle - Im Not Dead Scene - Black Panther Returns - Black Panther (2018) Movie Clip 19.9M
+---
 
-Hiding in the Shadows | The Real Black Panther | National Geographic Wild UK 4.2M
+## 📑 API
 
-Meet The K2 Black Panther – One Of The World’s Best Tanks (Not Made In the USA) 13K
+`ytsearch(query: string): Promise<Array<Video>>`
 
-(Black Panther) Best Action Hollywood Blockbuster Movie in Hindi Full Action HD 633.7K
+### Video Object
 
-Black Panther - Car Chase Scene -  Movie clip Epic  4k UHD 428.8K
+Each search result returns:
 
+```js
+{
+  type: "video",
+  id: "dQw4w9WgXcQ",
+  title: "Rick Astley - Never Gonna Give You Up",
+  thumbnail: {
+    url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg",
+    width: 360,
+    height: 202
+  },
+  viewCount: 1692378655,
+  shortViewCount: "1.7B",
+  duration: "3:34",
+  seconds: 214,
+  author: {
+    name: "Rick Astley",
+    url: "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+    verified: true
+  },
+  watchUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  publishedAt: "15 years ago"
+}
+```
+---
 
- ```
+## 📖 Examples
 
+Check the [`examples/`](./examples) folder for more usage demos, including filtering, pagination, and working with metadata.
+
+---
+
+## 🤝 Contributing
+
+1. Fork this repo
+2. Create a feature branch (`git checkout -b feature/awesome`)
+3. Commit changes (`git commit -m 'Add awesome feature'`)
+4. Push branch (`git push origin feature/awesome`)
+5. Create a Pull Request 🚀
+
+---
+
+## 📜 License
+
+MIT © 2025 \[ytsearch.js contributors]
+
+---
 
 [npm-downloads-image]: https://badgen.net/npm/dm/ytsearch.js
 [npm-downloads-url]: https://npmcharts.com/compare/ytsearch.js?minimal=true
