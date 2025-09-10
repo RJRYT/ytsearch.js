@@ -33,6 +33,10 @@
     "ytsearch",
     "ytsearch.js"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "RJRYT <rjryt@outlook.com> (https://rjryt.github.io/)",
   "license": "MIT",
   "bugs": {
