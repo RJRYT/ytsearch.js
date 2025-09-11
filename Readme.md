@@ -4,7 +4,7 @@
 [![NPM Downloads][npm-downloads-image]][npm-downloads-url]
 [![NPM Install Size][npm-install-size-image]][npm-install-size-url]
 
-> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube video results without using the official API.
+> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube **videos, channels, and playlists** without using the official API.
 
 ---
 
@@ -28,10 +28,8 @@ Requires **Node.js v14+** (ESM supported).
 const ytsearch = require("ytsearch.js");
 
 (async () => {
-  const results = await ytsearch("Black Panther");
-  results.slice(0, 5).forEach(video => {
-    console.log(video.title, video.shortViewCount);
-  });
+  const results = await ytsearch("Black Panther", { type: "video", limit: 5 });
+  results.forEach(item => console.log(item.type, item.title));
 })();
 ```
 
@@ -40,41 +38,37 @@ const ytsearch = require("ytsearch.js");
 ```js
 import ytsearch from "ytsearch.js";
 
-const results = await ytsearch("Black Panther");
-results.slice(0, 5).forEach(video => {
-  console.log(video.title, video.shortViewCount);
-});
-```
-
-### Example Output
-
-```
-Marvel Studios Black Panther - Official Trailer  50.5M
-Wakanda Battle - I'm Not Dead Scene              19.9M
-Hiding in the Shadows | The Real Black Panther   4.2M
-Meet The K2 Black Panther – Best Tank            13K
-Black Panther - Car Chase Scene (4K UHD)         428.8K
+const results = await ytsearch("Black Panther", { type: "channel", limit: 3 });
+results.forEach(item => console.log(item.type, item.title));
 ```
 
 ---
 
 ## 📑 API
 
-`ytsearch(query: string): Promise<Array<Video>>`
+### Function
 
-### Video Object
+```ts
+ytsearch(query: string, options?: {
+  type?: "video" | "channel" | "playlist",
+  sort?: "relevance" | "upload_date" | "view_count" | "rating",
+  limit?: number
+}): Promise<Array<Result>>
+```
 
-Each search result returns:
+### Result Types
+
+#### Video Object
 
 ```js
 {
   type: "video",
   id: "dQw4w9WgXcQ",
   title: "Rick Astley - Never Gonna Give You Up",
-  thumbnail: {
-    url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg",
+  thumbnail: { 
+    url: 'https://i.ytimg.com/vi/XXXXX',
     width: 360,
-    height: 202
+    height: 202 
   },
   viewCount: 1692378655,
   shortViewCount: "1.7B",
@@ -89,11 +83,78 @@ Each search result returns:
   publishedAt: "15 years ago"
 }
 ```
+
+#### Channel Object
+
+```js
+{
+  type: "channel",
+  id: "zjskdfj-nxs",
+  title: "Rick Roll",
+  thumbnail: { 
+    url: 'https://i.ytimg.com/vi/XXXXX',
+    width: 360,
+    height: 202 
+  },
+  description: "rick roll...",
+  subscriberCount: "3.2M",
+  url: 'https://www.youtube.com/channel/XYZ',
+  verified: true,
+  isArtist: false
+}
+```
+
+#### Playlist Object
+
+```js
+{
+  type: "playlist",
+  contentType: "vedio",
+  id: "esxdrctfvygbhunj",
+  title: "Rick Roll Mix",
+  thumbnail: { 
+    url: 'https://i.ytimg.com/vi/XXXXX',
+    width: 360,
+    height: 202 
+  },
+  videoCount: 50,
+  author: {
+    name: "Rick Roll",
+    url: 'https://www.youtube.com/channel/XYZ',
+    verified: true,
+    isArtist: false
+  },
+  url: "https://www.youtube.com/playlist?list=XYZ123"
+}
+```
+
 ---
 
 ## 📖 Examples
 
-Check the [`examples/`](./examples) folder for more usage demos, including filtering, pagination, and working with metadata.
+### Fetch videos
+
+```js
+const results = await ytsearch("lofi hip hop", { type: "video", limit: 3 });
+```
+
+### Fetch channels
+
+```js
+const channels = await ytsearch("lofi", { type: "channel", limit: 2 });
+```
+
+### Fetch playlists
+
+```js
+const playlists = await ytsearch("lofi study", { type: "playlist", limit: 2 });
+```
+
+### Sort by upload date
+
+```js
+const latest = await ytsearch("technology", { type: "video", sort: "upload_date", limit: 5 });
+```
 
 ---
 
