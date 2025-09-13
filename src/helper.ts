@@ -1,6 +1,17 @@
 import type { ExtractedItem, Thumbnail } from "./types";
-import { BaseUrl, PlaylistUrl, WatchUrl } from "./utils/constants";
-import { findFirstMatchingValue, shortNumber, toSeconds } from "./utils/utils";
+import {
+  BaseUrl,
+  DefaultImageName,
+  ImageBaseUrl,
+  PlaylistUrl,
+  WatchUrl,
+} from "./utils/constants";
+import {
+  findFirstMatchingValue,
+  getNormalizedQueryFreeUrl,
+  shortNumber,
+  toSeconds,
+} from "./utils/utils";
 import axios from "axios";
 
 /**
@@ -40,11 +51,15 @@ export const FormatVedioObject = (
 
   const publishedAt = videoRenderer.publishedTimeText?.simpleText || "";
   const watchUrl = WatchUrl + id;
+  const image = getNormalizedQueryFreeUrl(
+    ImageBaseUrl + id + DefaultImageName
+  );
 
   return {
     type: "video",
     id,
     title,
+    image,
     thumbnail,
     viewCount,
     shortViewCount,
@@ -70,48 +85,49 @@ export const FormatVedioObject = (
 export const FormatChannelObject = (
   channelRenderer: any
 ): ExtractedItem | undefined => {
-    const id = channelRenderer.channelId;
-    const title = channelRenderer.title.simpleText;
-    const thumbnail: Thumbnail = {
-      url: channelRenderer.thumbnail.thumbnails[0].url,
-      width: channelRenderer.thumbnail.thumbnails[0].width,
-      height: channelRenderer.thumbnail.thumbnails[0].height,
-    };
+  const id = channelRenderer.channelId;
+  const title = channelRenderer.title.simpleText;
+  const thumbnail: Thumbnail = {
+    url: getNormalizedQueryFreeUrl(channelRenderer.thumbnail.thumbnails[0].url),
+    width: channelRenderer.thumbnail.thumbnails[0].width,
+    height: channelRenderer.thumbnail.thumbnails[0].height,
+  };
 
-    const description =
-      channelRenderer.descriptionSnippet?.runs
-        ?.map((run: any) => run.text)
-        .join("") || "";
+  const description =
+    channelRenderer.descriptionSnippet?.runs
+      ?.map((run: any) => run.text)
+      .join("") || "";
 
-    const subscriberCountText =
-      channelRenderer.videoCountText?.simpleText || "0 subscribers";
+  const subscriberCountText =
+    channelRenderer.videoCountText?.simpleText || "0 subscribers";
 
-    const authorUrl =
-      channelRenderer.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl ||
-      channelRenderer.navigationEndpoint?.commandMetadata?.webCommandMetadata
-        ?.url;
+  const authorUrl =
+    channelRenderer.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl ||
+    channelRenderer.navigationEndpoint?.commandMetadata?.webCommandMetadata
+      ?.url;
 
-    const isVerified = !!(
-      channelRenderer.ownerBadges &&
-      JSON.stringify(channelRenderer.ownerBadges).includes("CHECK_CIRCLE_THICK")
-    );
-    const isArtist = !!(
-      channelRenderer.ownerBadges &&
-      JSON.stringify(channelRenderer.ownerBadges).includes("AUDIO_BADGE")
-    );
+  const isVerified = !!(
+    channelRenderer.ownerBadges &&
+    JSON.stringify(channelRenderer.ownerBadges).includes("CHECK_CIRCLE_THICK")
+  );
+  const isArtist = !!(
+    channelRenderer.ownerBadges &&
+    JSON.stringify(channelRenderer.ownerBadges).includes("AUDIO_BADGE")
+  );
 
-    return {
-      type: "channel",
-      id,
-      title,
-      thumbnail,
-      description,
-      subscriberCount: subscriberCountText.replace(/ subscribers/g, ""),
-      url: BaseUrl + authorUrl,
-      verified: isVerified,
-      isArtist,
-    };
-}
+  return {
+    type: "channel",
+    id,
+    title,
+    image: thumbnail.url,
+    thumbnail,
+    description,
+    subscriberCount: subscriberCountText.replace(/ subscribers/g, ""),
+    url: BaseUrl + authorUrl,
+    verified: isVerified,
+    isArtist,
+  };
+};
 
 /**
  * Formats a playlistRenderer object into an ExtractedItem.
@@ -121,68 +137,68 @@ export const FormatChannelObject = (
 export const FormatPlaylistObject = (
   playlistRenderer: any
 ): ExtractedItem | undefined => {
-    const id = playlistRenderer.contentId;
-    const title =
-      playlistRenderer.metadata.lockupMetadataViewModel.title.content;
+  const id = playlistRenderer.contentId;
+  const title = playlistRenderer.metadata.lockupMetadataViewModel.title.content;
 
-    const thumbnail: Thumbnail = {
-      url: playlistRenderer.contentImage.collectionThumbnailViewModel
-        .primaryThumbnail.thumbnailViewModel.image.sources[0].url,
-      width:
-        playlistRenderer.contentImage.collectionThumbnailViewModel
-          .primaryThumbnail.thumbnailViewModel.image.sources[0].width,
-      height:
-        playlistRenderer.contentImage.collectionThumbnailViewModel
-          .primaryThumbnail.thumbnailViewModel.image.sources[0].height,
-    };
+  const thumbnail: Thumbnail = {
+    url: playlistRenderer.contentImage.collectionThumbnailViewModel
+      .primaryThumbnail.thumbnailViewModel.image.sources[0].url,
+    width:
+      playlistRenderer.contentImage.collectionThumbnailViewModel
+        .primaryThumbnail.thumbnailViewModel.image.sources[0].width,
+    height:
+      playlistRenderer.contentImage.collectionThumbnailViewModel
+        .primaryThumbnail.thumbnailViewModel.image.sources[0].height,
+  };
 
-    const videoCountText =
-      findFirstMatchingValue(playlistRenderer.contentImage, /\d+ videos/) ||
-      findFirstMatchingValue(playlistRenderer.contentImage, /\d+ lessons/) ||
-      findFirstMatchingValue(playlistRenderer.contentImage, /\d+ episodes/);
+  const videoCountText =
+    findFirstMatchingValue(playlistRenderer.contentImage, /\d+ videos/) ||
+    findFirstMatchingValue(playlistRenderer.contentImage, /\d+ lessons/) ||
+    findFirstMatchingValue(playlistRenderer.contentImage, /\d+ episodes/);
 
-    const videoCount = parseInt(videoCountText?.replace(/[^0-9]/g, "") || "0");
+  const videoCount = parseInt(videoCountText?.replace(/[^0-9]/g, "") || "0");
 
-    const authorObject =
-      playlistRenderer.metadata.lockupMetadataViewModel.metadata
-        .contentMetadataViewModel.metadataRows[0].metadataParts[0].text;
+  const authorObject =
+    playlistRenderer.metadata.lockupMetadataViewModel.metadata
+      .contentMetadataViewModel.metadataRows[0].metadataParts[0].text;
 
-    const authorUrl =
-      authorObject?.commandRuns?.[0]?.onTap?.innertubeCommand?.browseEndpoint
-        ?.canonicalBaseUrl ||
-      authorObject?.commandRuns?.[0]?.onTap?.innertubeCommand?.commandMetadata
-        ?.webCommandMetadata?.url;
+  const authorUrl =
+    authorObject?.commandRuns?.[0]?.onTap?.innertubeCommand?.browseEndpoint
+      ?.canonicalBaseUrl ||
+    authorObject?.commandRuns?.[0]?.onTap?.innertubeCommand?.commandMetadata
+      ?.webCommandMetadata?.url;
 
-    const authorVerified = !!findFirstMatchingValue(
-      playlistRenderer.metadata,
-      /CHECK_CIRCLE_FILLED/
-    );
-    const authorIsArtist = !!findFirstMatchingValue(
-      playlistRenderer.metadata,
-      /AUDIO_BADGE/
-    );
+  const authorVerified = !!findFirstMatchingValue(
+    playlistRenderer.metadata,
+    /CHECK_CIRCLE_FILLED/
+  );
+  const authorIsArtist = !!findFirstMatchingValue(
+    playlistRenderer.metadata,
+    /AUDIO_BADGE/
+  );
 
-    const contentType =
-      videoCountText?.replace(/[^a-zA-Z ]/g, "").trim() || "videos";
+  const contentType =
+    videoCountText?.replace(/[^a-zA-Z ]/g, "").trim() || "videos";
 
-    return {
-      type: "playlist",
-      contentType,
-      id,
-      title,
-      thumbnail,
-      videoCount,
-      author: authorObject
-        ? {
-            name: authorObject.content,
-            url: BaseUrl + authorUrl,
-            verified: authorVerified,
-            isArtist: authorIsArtist,
-          }
-        : null,
-      url: PlaylistUrl + id,
-    };
-}
+  return {
+    type: "playlist",
+    contentType,
+    id,
+    title,
+    image: getNormalizedQueryFreeUrl(thumbnail.url),
+    thumbnail,
+    videoCount,
+    author: authorObject
+      ? {
+          name: authorObject.content,
+          url: BaseUrl + authorUrl,
+          verified: authorVerified,
+          isArtist: authorIsArtist,
+        }
+      : null,
+    url: PlaylistUrl + id,
+  };
+};
 
 /**
  * Fetches and parses HTML data to extract YouTube initial data.
@@ -191,6 +207,9 @@ export const FormatPlaylistObject = (
  * @returns {Promise<any>} A promise that resolves to the parsed initial data object.
  * @throws If parsing fails or initial data is not found.
  */
-export const fetchHtmlData = async (url: string, params: object): Promise<any> => {
-    return (await axios.get(url, params)).data;
-}
+export const fetchHtmlData = async (
+  url: string,
+  params: object
+): Promise<any> => {
+  return (await axios.get(url, params)).data;
+};

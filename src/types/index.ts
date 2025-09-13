@@ -40,6 +40,7 @@ export interface VideoResult {
   type: "video";
   id: string;
   title: string;
+  image: string;
   thumbnail: Thumbnail;
   viewCount: number;
   shortViewCount: string;
@@ -61,6 +62,7 @@ export interface ChannelResult {
   type: "channel";
   id: string;
   title: string;
+  image: string;
   thumbnail: Thumbnail;
   description: string;
   subscriberCount: string;
@@ -77,6 +79,7 @@ export interface PlaylistResult {
   contentType: string;
   id: string;
   title: string;
+  image: string;
   thumbnail: Thumbnail;
   videoCount: number;
   author: {

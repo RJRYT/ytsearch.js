@@ -5,12 +5,12 @@
  * @returns The equivalent time in seconds, or 0 if invalid.
  */
 const toSeconds = (timeString: string): number => {
-    const timeArray = timeString.split(":").reverse();
-    let seconds = 0;
-    for (let i = 0; i < timeArray.length; i++) {
-        seconds += parseInt(timeArray[i] ?? "0", 10) * Math.pow(60, i);
-    }
-    return isNaN(seconds) ? 0 : seconds;
+  const timeArray = timeString.split(":").reverse();
+  let seconds = 0;
+  for (let i = 0; i < timeArray.length; i++) {
+    seconds += parseInt(timeArray[i] ?? "0", 10) * Math.pow(60, i);
+  }
+  return isNaN(seconds) ? 0 : seconds;
 };
 
 /**
@@ -64,4 +64,44 @@ const findFirstMatchingValue = (
   return undefined;
 };
 
-export { toSeconds, shortNumber, findFirstMatchingValue };
+/**
+ * Normalizes a URL by ensuring it uses the HTTPS protocol and returns the URL without its query string.
+ * - Adds 'https://' if the protocol is missing.
+ * - Converts 'http://' to 'https://'.
+ * - Throws an error for invalid URL formats that cannot be fixed.
+ *
+ * @param {string} urlString The potentially malformed URL string.
+ * @returns {string} A normalized, query-free HTTPS URL.
+ */
+const getNormalizedQueryFreeUrl = (urlString: string): string => {
+  // Normalize the input string by trimming whitespace and converting to lowercase for protocol check
+  const normalizedInput = urlString.trim();
+
+  // Prepend 'https://' if the URL does not start with a protocol
+  let fullUrlString = normalizedInput;
+  if (
+    !normalizedInput.startsWith("http://") &&
+    !normalizedInput.startsWith("https://")
+  ) {
+    fullUrlString = `https://${normalizedInput}`;
+  } else if (normalizedInput.startsWith("http://")) {
+    // Replace 'http' with 'https'
+    fullUrlString = normalizedInput.replace("http://", "https://");
+  }
+
+  try {
+    const urlObj = new URL(fullUrlString);
+    urlObj.search = ""; // Remove query parameters
+    return urlObj.toString();
+  } catch (error) {
+    // This catch block handles cases like "invalid-domain" that cannot be fixed
+    throw new Error(`Invalid URL provided: ${urlString}`);
+  }
+};
+
+export {
+  toSeconds,
+  shortNumber,
+  findFirstMatchingValue,
+  getNormalizedQueryFreeUrl,
+};

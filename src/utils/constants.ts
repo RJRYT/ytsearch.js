@@ -2,6 +2,8 @@ export const BaseUrl = "https://www.youtube.com" as const;
 export const WatchUrl = `${BaseUrl}/watch?v=` as const;
 export const SearchUrl = `${BaseUrl}/results` as const;
 export const PlaylistUrl = `${BaseUrl}/playlist?list=` as const;
+export const DefaultImageName = "/hqdefault.jpg" as const;
+export const ImageBaseUrl = "https://i.ytimg.com/vi/" as const;
 
 export const TypeFilters = {
   video: "EgIQAQ==",
