@@ -61,71 +61,80 @@ ytsearch(query: string, options?: {
 #### Video Object
 
 ```js
-{
-  type: "video",
-  id: "dQw4w9WgXcQ",
-  title: "Rick Astley - Never Gonna Give You Up",
-  thumbnail: { 
-    url: 'https://i.ytimg.com/vi/XXXXX',
-    width: 360,
-    height: 202 
+[
+  {
+    type: "video",
+    id: "dQw4w9WgXcQ",
+    title: "Rick Astley - Never Gonna Give You Up",
+    thumbnail: { 
+      url: 'https://i.ytimg.com/vi/XXXXX',
+      width: 360,
+      height: 202 
+    },
+    viewCount: 1692378655,
+    shortViewCount: "1.7B",
+    duration: "3:34",
+    seconds: 214,
+    author: {
+      name: "Rick Astley",
+      url: "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+      verified: true
+    },
+    watchUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    publishedAt: "15 years ago"
   },
-  viewCount: 1692378655,
-  shortViewCount: "1.7B",
-  duration: "3:34",
-  seconds: 214,
-  author: {
-    name: "Rick Astley",
-    url: "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
-    verified: true
-  },
-  watchUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  publishedAt: "15 years ago"
-}
+  ...
+]
 ```
 
 #### Channel Object
 
 ```js
-{
-  type: "channel",
-  id: "zjskdfj-nxs",
-  title: "Rick Roll",
-  thumbnail: { 
-    url: 'https://i.ytimg.com/vi/XXXXX',
-    width: 360,
-    height: 202 
+[
+  {
+    type: "channel",
+    id: "zjskdfj-nxs",
+    title: "Rick Roll",
+    thumbnail: { 
+      url: 'https://i.ytimg.com/vi/XXXXX',
+      width: 360,
+      height: 202 
+    },
+    description: "rick roll...",
+    subscriberCount: "3.2M",
+    url: 'https://www.youtube.com/channel/XYZ',
+    verified: true,
+    isArtist: false
   },
-  description: "rick roll...",
-  subscriberCount: "3.2M",
-  url: 'https://www.youtube.com/channel/XYZ',
-  verified: true,
-  isArtist: false
-}
+  ...
+]
 ```
 
 #### Playlist Object
 
 ```js
-{
-  type: "playlist",
-  contentType: "vedio",
-  id: "esxdrctfvygbhunj",
-  title: "Rick Roll Mix",
-  thumbnail: { 
-    url: 'https://i.ytimg.com/vi/XXXXX',
-    width: 360,
-    height: 202 
+[
+  {
+    type: "playlist",
+    contentType: "vedio",
+    id: "esxdrctfvygbhunj",
+    title: "Rick Roll Mix",
+    thumbnail: { 
+      url: 'https://i.ytimg.com/vi/XXXXX',
+      width: 360,
+      height: 202 
+    },
+    videoCount: 50,
+    author: {
+      name: "Rick Roll",
+      url: 'https://www.youtube.com/channel/XYZ',
+      verified: true,
+      isArtist: false
+    },
+    url: "https://www.youtube.com/playlist?list=XYZ123"
   },
-  videoCount: 50,
-  author: {
-    name: "Rick Roll",
-    url: 'https://www.youtube.com/channel/XYZ',
-    verified: true,
-    isArtist: false
-  },
-  url: "https://www.youtube.com/playlist?list=XYZ123"
-}
+  ...
+]
 ```
 
 ---
