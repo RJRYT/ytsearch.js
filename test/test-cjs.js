@@ -1,9 +1,9 @@
-const extractData = require("../dist/main.cjs");
+const SearchYt = require("../dist/main.js");
 
 async function testCommonJS() {
   try {
     const query = "rick astley never gonna give you up";
-    const results = await extractData(query, { type: "video" });
+    const results = await SearchYt(query, { type: "video" });
     console.log("CommonJS Test Results:(Count:", results.length + ")");
     console.log(results[0]);
     if (results.length > 0 && results[0].type === "video") {

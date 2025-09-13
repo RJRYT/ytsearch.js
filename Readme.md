@@ -25,21 +25,21 @@ Requires **Node.js v14+** (ESM supported).
 ### CommonJS
 
 ```js
-const ytsearch = require("ytsearch.js");
+const { SearchYt } = require("ytsearch.js");
 
 (async () => {
-  const results = await ytsearch("Black Panther", { type: "video", limit: 5 });
-  results.forEach(item => console.log(item.type, item.title));
+  const results = await SearchYt("Black Panther", { type: "video", limit: 5 });
+  results.forEach((item) => console.log(item.type, item.title));
 })();
 ```
 
 ### ES Modules
 
 ```js
-import ytsearch from "ytsearch.js";
+import { SearchYt } from "ytsearch.js";
 
-const results = await ytsearch("Black Panther", { type: "channel", limit: 3 });
-results.forEach(item => console.log(item.type, item.title));
+const results = await SearchYt("Black Panther", { type: "channel", limit: 3 });
+results.forEach((item) => console.log(item.type, item.title));
 ```
 
 ---
@@ -49,7 +49,7 @@ results.forEach(item => console.log(item.type, item.title));
 ### Function
 
 ```ts
-ytsearch(query: string, options?: {
+SearchYt(query: string, options?: {
   type?: "video" | "channel" | "playlist",
   sort?: "relevance" | "upload_date" | "view_count" | "rating",
   limit?: number
@@ -66,10 +66,10 @@ ytsearch(query: string, options?: {
     type: "video",
     id: "dQw4w9WgXcQ",
     title: "Rick Astley - Never Gonna Give You Up",
-    thumbnail: { 
+    thumbnail: {
       url: 'https://i.ytimg.com/vi/XXXXX',
       width: 360,
-      height: 202 
+      height: 202
     },
     viewCount: 1692378655,
     shortViewCount: "1.7B",
@@ -95,10 +95,10 @@ ytsearch(query: string, options?: {
     type: "channel",
     id: "zjskdfj-nxs",
     title: "Rick Roll",
-    thumbnail: { 
+    thumbnail: {
       url: 'https://i.ytimg.com/vi/XXXXX',
       width: 360,
-      height: 202 
+      height: 202
     },
     description: "rick roll...",
     subscriberCount: "3.2M",
@@ -119,10 +119,10 @@ ytsearch(query: string, options?: {
     contentType: "vedio",
     id: "esxdrctfvygbhunj",
     title: "Rick Roll Mix",
-    thumbnail: { 
+    thumbnail: {
       url: 'https://i.ytimg.com/vi/XXXXX',
       width: 360,
-      height: 202 
+      height: 202
     },
     videoCount: 50,
     author: {
@@ -144,25 +144,29 @@ ytsearch(query: string, options?: {
 ### Fetch videos
 
 ```js
-const results = await ytsearch("lofi hip hop", { type: "video", limit: 3 });
+const results = await SearchYt("lofi hip hop", { type: "video", limit: 3 });
 ```
 
 ### Fetch channels
 
 ```js
-const channels = await ytsearch("lofi", { type: "channel", limit: 2 });
+const channels = await SearchYt("lofi", { type: "channel", limit: 2 });
 ```
 
 ### Fetch playlists
 
 ```js
-const playlists = await ytsearch("lofi study", { type: "playlist", limit: 2 });
+const playlists = await SearchYt("lofi study", { type: "playlist", limit: 2 });
 ```
 
 ### Sort by upload date
 
 ```js
-const latest = await ytsearch("technology", { type: "video", sort: "upload_date", limit: 5 });
+const latest = await SearchYt("technology", {
+  type: "video",
+  sort: "upload_date",
+  limit: 5,
+});
 ```
 
 ---

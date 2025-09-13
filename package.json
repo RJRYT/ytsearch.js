@@ -1,46 +1,61 @@
 {
   "name": "ytsearch.js",
   "version": "1.3.0",
-  "description": "Youtube content search warpper for nodejs",
-  "main": "dist/main.cjs",
+  "description": "A lightweight YouTube search wrapper for Node.js and TypeScript with support for videos, playlists, and channels.",
+  "main": "dist/main.js",
   "module": "dist/main.mjs",
-  "type": "commonjs",
+  "types": "dist/main.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/main.cjs",
+      "require": "./dist/main.js",
       "import": "./dist/main.mjs"
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/main.ts --format cjs,esm --dts --dts-resolve --out-dir dist --clean --splitting --minify",
+    "clean": "rm -rf dist",
+    "prepare": "npm run clean && npm run build",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "youtube",
+    "youtube api",
+    "youtube scraper",
+    "youtube search",
+    "ytsearch",
+    "ytsearch.js",
+    "yt api wrapper",
+    "nodejs",
+    "typescript",
+    "video search",
+    "playlist search",
+    "channel search"
   ],
   "dependencies": {
     "axios": "^1.11.0"
   },
-  "scripts": {
-    "test": ""
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/RJRYT/ytsearch.js.git"
-  },
-  "keywords": [
-    "Youtube",
-    "search",
-    "videos",
-    "yt",
-    "ytsearch",
-    "ytsearch.js"
-  ],
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   },
   "author": "RJRYT <rjryt@outlook.com> (https://rjryt.github.io/)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/RJRYT/ytsearch.js/issues"
   },
-  "homepage": "https://github.com/RJRYT/ytsearch.js#readme"
+  "homepage": "https://github.com/RJRYT/ytsearch.js#readme",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }
