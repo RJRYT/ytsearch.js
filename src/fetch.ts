@@ -1,4 +1,9 @@
-import type { SearchOptions, SearchType, RawSearchResult } from "./types";
+import type {
+  SearchOptions,
+  SearchType,
+  RawSearchResult,
+  SearchPlaylistType,
+} from "./types";
 import {
   TypeFilters,
   DefaultOptions,
@@ -6,8 +11,10 @@ import {
   ExpectedTypes,
   SearchUrl,
   ContentObjectKey,
+  PlaylistUrl,
 } from "./utils/constants";
-import { fetchHtmlData } from "./helper";
+import { fetchHtmlData, parseAlerts } from "./helper";
+import { getNormalizedQueryFreeUrl } from "./utils/utils";
 
 /**
  * Searches YouTube for videos, channels, or playlists.
@@ -101,8 +108,113 @@ const fetchResultDataFromYT = async (
 
 const fetchPlayListDataFromYT = async (
   playListID: string
-) => {
-  return null;
+): Promise<SearchPlaylistType> => {
+  if (typeof playListID !== "string" || playListID.trim() === "") {
+    throw new Error("Invalid playList ID. It must be a non-empty string.");
+  }
+
+  const _queryOptions = {
+    app: "desktop",
+    list: playListID,
+  };
+
+  try {
+    const html = await fetchHtmlData(getNormalizedQueryFreeUrl(PlaylistUrl), {
+      params: _queryOptions,
+    });
+
+    // Parse ytInitialData from the HTML response
+    const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
+    if (!match) {
+      throw new Error(
+        "Failed to parse YouTube initial data Or Invalid playlist."
+      );
+    }
+
+    const initialData = JSON.parse(match[1]!);
+
+    // Check if response contains error alerts
+    if (initialData.alerts?.length) {
+      const alerts = parseAlerts(initialData.alerts);
+
+      // Find if any are errors
+      const errorAlert = alerts.find((a) => a.type === "ERROR");
+      if (errorAlert) {
+        throw new Error(errorAlert.message);
+      }
+
+      // Otherwise, log warnings but continue
+      const warnings = alerts.filter((a) => a.type !== "ERROR");
+      if (warnings.length) {
+        console.warn(
+          "Playlist warnings:",
+          warnings.map((w) => w.message)
+        );
+      }
+    }
+
+    // Navigate down to playlist contents
+    const tabs =
+      initialData.contents.twoColumnBrowseResultsRenderer?.tabs ?? [];
+    const sectionList =
+      tabs[0]?.tabRenderer?.content?.sectionListRenderer?.contents ?? [];
+
+    const playlistInfo = initialData.header.pageHeaderRenderer;
+
+    // Find playlistVideoListRenderer
+    let playlistData: any[] = [];
+    for (const section of sectionList) {
+      if (section.itemSectionRenderer?.contents) {
+        for (const content of section.itemSectionRenderer.contents) {
+          if (content.playlistVideoListRenderer) {
+            playlistData = content.playlistVideoListRenderer.contents;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!playlistData.length) {
+      throw new Error("No videos found in playlist.");
+    }
+
+    // Filter out continuation tokens (they appear for load-more)
+    const videos = playlistData.filter((c) =>
+      c.hasOwnProperty("playlistVideoRenderer")
+    );
+    const ContinueObject = playlistData.filter((c) =>
+      c.hasOwnProperty("continuationItemRenderer")
+    );
+
+    let continueToken = null;
+    if (ContinueObject) {
+      continueToken =
+        ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint
+          ?.continuationCommand?.token ||
+        ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
+          (c: any) => c.hasOwnProperty("continuationCommand")
+        )?.continuationCommand?.token || null;
+    }
+
+    let apiToken =
+      html.split('INNERTUBE_API_KEY":"')[1]?.split('"')[0] ??
+      html.split('innertubeApiKey":"')[1]?.split('"')[0];
+
+    let clientVersion =
+      html.split('"INNERTUBE_CLIENT_VERSION":"')[1]?.split('"')[0] ??
+      html.split('"clientVersion":"')[1]?.split('"')[0] ??
+      "2.20250911.00.00";
+
+    return {
+      apiToken,
+      clientVersion,
+      continueToken,
+      playlistInfo,
+      videos: videos as RawSearchResult[],
+    };
+  } catch (error: any) {
+    throw new Error(`Error searching for playlist '${playListID}': ${error}`);
+  }
 };
 
 export { fetchResultDataFromYT, fetchPlayListDataFromYT };

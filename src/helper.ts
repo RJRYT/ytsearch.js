@@ -1,8 +1,9 @@
-import type { ExtractedItem, Thumbnail } from "./types";
+import type { ExtractedItem, RawSearchResult, Thumbnail } from "./types";
 import {
   BaseUrl,
   DefaultImageName,
   ImageBaseUrl,
+  PlayListApiUrl,
   PlaylistUrl,
   WatchUrl,
 } from "./utils/constants";
@@ -51,9 +52,7 @@ export const FormatVedioObject = (
 
   const publishedAt = videoRenderer.publishedTimeText?.simpleText || "";
   const watchUrl = WatchUrl + id;
-  const image = getNormalizedQueryFreeUrl(
-    ImageBaseUrl + id + DefaultImageName
-  );
+  const image = getNormalizedQueryFreeUrl(ImageBaseUrl + id + DefaultImageName);
 
   return {
     type: "video",
@@ -212,4 +211,197 @@ export const fetchHtmlData = async (
   params: object
 ): Promise<any> => {
   return (await axios.get(url, params)).data;
+};
+
+export function parseAlerts(
+  alerts: any[]
+): { type: string; message: string }[] {
+  return alerts.map((a) => {
+    if (a.alertRenderer) {
+      // Pure error
+      return {
+        type: a.alertRenderer.type ?? "ERROR",
+        message:
+          a.alertRenderer.text?.runs?.map((r: any) => r.text).join(" ") ??
+          "Unknown playlist error.",
+      };
+    } else if (a.alertWithButtonRenderer) {
+      // Info / warning with dismiss button
+      return {
+        type: a.alertWithButtonRenderer.type ?? "INFO",
+        message:
+          a.alertWithButtonRenderer.text?.simpleText ??
+          "Unknown playlist info.",
+      };
+    }
+    return { type: "UNKNOWN", message: "Unrecognized alert format." };
+  });
+}
+
+export const FormatPlaylistVedioObject = (
+  videoRenderer: any
+): any | undefined => {
+  const id = videoRenderer.videoId;
+  const title = videoRenderer.title.runs[0].text;
+  const thumbnail: Thumbnail = {
+    url: videoRenderer.thumbnail.thumbnails[0].url,
+    width: videoRenderer.thumbnail.thumbnails[0].width,
+    height: videoRenderer.thumbnail.thumbnails[0].height,
+  };
+  const index = videoRenderer.index.simpleText;
+
+  const views = videoRenderer.videoInfo?.runs[0]?.text || "";
+
+  const duration = videoRenderer.lengthText?.simpleText || "00:00";
+  const seconds = toSeconds(duration);
+
+  const author = videoRenderer.shortBylineText?.runs?.[0];
+  const authorUrl =
+    author?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl ||
+    author?.navigationEndpoint?.commandMetadata?.webCommandMetadata?.url;
+
+  const publishedAt = videoRenderer.videoInfo?.runs[2]?.text || "";
+  const playlistId = videoRenderer.navigationEndpoint.watchEndpoint.playlistId;
+  const watchUrl =
+    BaseUrl +
+      videoRenderer.navigationEndpoint.commandMetadata.webCommandMetadata.url ||
+    `/watch?v=${id}&list=&${playlistId}` ||
+    `/watch?v=${id}`;
+  const image = getNormalizedQueryFreeUrl(ImageBaseUrl + id + DefaultImageName);
+
+  return {
+    type: "video",
+    id,
+    index,
+    title,
+    image,
+    thumbnail,
+    views,
+    duration,
+    seconds,
+    author: author
+      ? {
+          name: author.text,
+          url: BaseUrl + authorUrl,
+        }
+      : null,
+    watchUrl,
+    publishedAt,
+  };
+};
+
+export const FormatPlayListInfoObject = (
+  playlistInfo: any,
+  playListID: string
+) => {
+  return {
+    id: playListID,
+    title: playlistInfo.pageTitle,
+    description:
+      playlistInfo.content.pageHeaderViewModel.description
+        .descriptionPreviewViewModel.description.content,
+    thumbnail: {
+      url: playlistInfo.content.pageHeaderViewModel.heroImage
+        .contentPreviewImageViewModel.image.sources[0].url,
+      width:
+        playlistInfo.content.pageHeaderViewModel.heroImage
+          .contentPreviewImageViewModel.image.sources[0].width,
+      height:
+        playlistInfo.content.pageHeaderViewModel.heroImage
+          .contentPreviewImageViewModel.image.sources[0].height,
+    },
+    image:
+      playlistInfo.content.pageHeaderViewModel.heroImage
+        .contentPreviewImageViewModel.image.sources[0].url,
+    author: {
+      name: playlistInfo.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows[0].metadataParts[0].avatarStack.avatarStackViewModel.text.content.replace(
+        /by /g,
+        ""
+      ),
+      url:
+        BaseUrl +
+        playlistInfo.content.pageHeaderViewModel.metadata
+          .contentMetadataViewModel.metadataRows[0].metadataParts[0].avatarStack
+          .avatarStackViewModel.text.commandRuns[0].onTap.innertubeCommand
+          .browseEndpoint.canonicalBaseUrl,
+      logo: playlistInfo.content.pageHeaderViewModel.metadata
+        .contentMetadataViewModel.metadataRows[0].metadataParts[0].avatarStack
+        .avatarStackViewModel.avatars[0].avatarViewModel.image.sources[0].url,
+    },
+    videoCount:
+      playlistInfo.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows[1].metadataParts[1].text.content.replace(
+        / videos/g,
+        ""
+      ),
+    viewsCount:
+      playlistInfo.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows[1].metadataParts[2].text.content.replace(
+        / views/g,
+        ""
+      ),
+  };
+};
+
+export const fetchPlaylistNextChunk = async (
+  apiToken: string,
+  continueToken: string,
+  clientVersion: string
+) => {
+  const response = await axios.post(
+    PlayListApiUrl + apiToken,
+    {
+      continuation: continueToken,
+      context: {
+        client: {
+          utcOffsetMinutes: 0,
+          gl: "US",
+          hl: "en",
+          clientName: "WEB",
+          clientVersion: clientVersion,
+        },
+        user: {},
+        request: {},
+      },
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; rv:140.0) Gecko/20100101 Firefox/140.0",
+      },
+    }
+  );
+  const initialData = response.data;
+
+  let playlistData: any[] =
+    initialData.onResponseReceivedActions[0].appendContinuationItemsAction
+      .continuationItems || [];
+
+  if (!playlistData.length) {
+    throw new Error("No videos found in playlist.");
+  }
+
+  const videos = playlistData.filter((c) =>
+    c.hasOwnProperty("playlistVideoRenderer")
+  );
+
+  const ContinueObject = playlistData.filter((c) =>
+    c.hasOwnProperty("continuationItemRenderer")
+  );
+
+  if (ContinueObject) {
+    continueToken =
+      ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint
+        ?.continuationCommand?.token ||
+      ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
+        (c: any) => c.hasOwnProperty("continuationCommand")
+      )?.continuationCommand?.token ||
+      null;
+  } else continueToken = ""; 
+
+  return {
+    apiToken,
+    clientVersion,
+    continueToken,
+    videos: videos as RawSearchResult[],
+  };
 };

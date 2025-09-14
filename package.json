@@ -17,7 +17,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/main.ts --format cjs,esm --dts --dts-resolve --out-dir dist --clean --splitting --minify",
+    "build": "tsup src/main.ts --format cjs,esm --dts --dts-resolve --out-dir dist --clean --splitting",
     "clean": "rm -rf dist",
     "prepare": "npm run clean && npm run build",
     "test": "echo \"No tests yet\" && exit 0"

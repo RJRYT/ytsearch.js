@@ -1,15 +1,20 @@
-import { fetchResultDataFromYT } from "./fetch";
+import { fetchResultDataFromYT, fetchPlayListDataFromYT } from "./fetch";
+import axios from "axios";
 import {
   DefaultOptions,
   ExpectedSorts,
   ExpectedTypes,
   ContentObjectKey,
+  PlayListApiUrl,
 } from "./utils/constants";
-import type { SearchOptions, ExtractedItem } from "./types";
+import type { SearchOptions, ExtractedItem, SearchPlaylistType } from "./types";
 import {
   FormatChannelObject,
+  FormatPlayListInfoObject,
   FormatPlaylistObject,
+  FormatPlaylistVedioObject,
   FormatVedioObject,
+  fetchPlaylistNextChunk,
 } from "./helper";
 
 /**
@@ -65,6 +70,42 @@ const SearchYt = async (
   return responseData.slice(0, options.limit);
 };
 
+const GetPlaylistVedios = async (playListID: string): Promise<any> => {
+  if (typeof playListID !== "string" || playListID.trim() === "") {
+    throw new Error("Invalid playList ID. It must be a non-empty string.");
+  }
+
+  const fetchResponse: SearchPlaylistType = await fetchPlayListDataFromYT(
+    playListID
+  );
+
+  const buildPage = (videos: any[], continuationToken: string): any => {
+    return {
+      playlist: FormatPlayListInfoObject(
+        fetchResponse.playlistInfo,
+        playListID
+      ),
+      videos: videos.map((vid) =>
+        FormatPlaylistVedioObject(vid.playlistVideoRenderer)
+      ),
+      hasNextPage: !!continuationToken,
+      nextPage: async () => {
+        if (!continuationToken) return null;
+
+        const responseData = await fetchPlaylistNextChunk(
+          fetchResponse.apiToken,
+          continuationToken,
+          fetchResponse.clientVersion
+        );
+
+        return buildPage(responseData.videos, responseData.continueToken);
+      },
+    };
+  };
+
+  return buildPage(fetchResponse.videos, fetchResponse.continueToken);
+};
+
 /**
  * @deprecated Use `SearchYt` instead.
  */
@@ -72,4 +113,11 @@ const extractData = SearchYt;
 
 export default SearchYt;
 
-export { extractData, SearchYt, DefaultOptions, ExpectedTypes, ExpectedSorts };
+export {
+  extractData,
+  SearchYt,
+  GetPlaylistVedios,
+  DefaultOptions,
+  ExpectedTypes,
+  ExpectedSorts,
+};

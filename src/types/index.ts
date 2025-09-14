@@ -5,6 +5,16 @@ import { ExpectedSorts, ExpectedTypes } from "../utils/constants";
  */
 export type RawSearchResult = Record<string, unknown>;
 
+export interface SearchPlaylistResponse {
+  apiToken: string;
+  clientVersion: string;
+  continueToken: string;
+  playlistInfo: any;
+  videos: RawSearchResult[];
+};
+
+export type SearchPlaylistType = SearchPlaylistResponse;
+
 /**
  * Allowed search types
  */

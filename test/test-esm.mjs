@@ -1,4 +1,4 @@
-import {SearchYt} from "../dist/main.mjs";
+import { SearchYt, GetPlaylistVedios } from "../dist/main.mjs";
 
 async function testESM() {
   try {
@@ -16,4 +16,40 @@ async function testESM() {
   }
 }
 
-testESM();
+// testESM();
+
+(async () => {
+  try {
+    const playlist = await GetPlaylistVedios(
+      "PL_rXc1ssylNfT3H9vIwiSMNyDM_tgpWnX"
+    );
+
+    console.log("Playlist Info:");
+    console.log(playlist.playlist);
+
+    console.log("\n--- First Page Videos ---");
+    playlist.videos.forEach(vid => {
+      console.log(`${vid.index}. ${vid.title} (${vid.watchUrl})`);
+    });
+
+    let page = playlist;
+    let pageNum = 2;
+
+    // Keep fetching until no more pages
+    while (page.hasNextPage) {
+      page = await page.nextPage();
+      if (!page) break; // safety
+
+      console.log(`\n--- Page ${pageNum} Videos ---`);
+      page.videos.forEach(vid => {
+        console.log(`${vid.index}. ${vid.title} (${vid.watchUrl})`);
+      });
+
+      pageNum++;
+    }
+
+    console.log("All pages fetched.");
+  } catch (err) {
+    console.error("Error:", err);
+  }
+})();
