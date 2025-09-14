@@ -3,9 +3,9 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
 async function testESM() {
   try {
     const query = "rick astley never gonna give you up";
-    const results = await searchYouTube(query, { type: "video" });
+    const results = await searchYouTube(query, { type: "video", sort: "view_count" });
     console.log("ESM Test Results:(Count:", results.length + ")");
-    console.log(results[0]);
+    console.log(results[0].title);
     if (results.length > 0 && results[0].type === "video") {
       console.log("Test Passed: Valid video data received.");
     } else {
@@ -16,7 +16,7 @@ async function testESM() {
   }
 }
 
-// testESM();
+testESM();
 
 (async () => {
   try {

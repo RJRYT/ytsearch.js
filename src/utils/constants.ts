@@ -12,6 +12,27 @@ export const TypeFilters = {
   playlist: "EgIQAw==",
 } as const;
 
+export const SortFilters = {
+  video: {
+    relevance: "CAASAhAB",
+    upload_date: "CAISAhAB",
+    view_count: "CAMSAhAB",
+    rating: "CAESAhAB",
+  },
+  channel: {
+    relevance: "CAASAhAC",
+    upload_date: "CAISAhAC",
+    view_count: "CAMSAhAC",
+    rating: "CAESAhAC",
+  },
+  playlist: {
+    relevance: "CAASAhAD",
+    upload_date: "CAISAhAD",
+    view_count: "CAMSAhAD",
+    rating: "CAESAhAD",
+  },
+} as const;
+
 export const ContentObjectKey = {
   video: "videoRenderer",
   channel: "channelRenderer",

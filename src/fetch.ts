@@ -3,6 +3,7 @@ import type {
   SearchType,
   RawSearchResult,
   SearchPlaylistType,
+  SortType,
 } from "./types";
 import {
   TypeFilters,
@@ -12,6 +13,7 @@ import {
   SearchUrl,
   ContentObjectKey,
   PlaylistUrl,
+  SortFilters,
 } from "./utils/constants";
 import { fetchHtmlData, parseAlerts } from "./helper";
 import { getNormalizedQueryFreeUrl } from "./utils/utils";
@@ -50,7 +52,10 @@ const fetchResultDataFromYT = async (
   const _queryOptions = {
     app: "desktop",
     search_query: query,
-    sp: TypeFilters[options.type as SearchType],
+    sp:
+      options.sort === ExpectedSorts[0]
+        ? TypeFilters[options.type as SearchType]
+        : SortFilters[options.type as SearchType][options.sort as SortType],
   };
 
   try {
