@@ -1,4 +1,4 @@
-import { SearchYt, GetPlaylistVedios } from "../dist/main.mjs";
+import { SearchYt, GetPlaylistVideos } from "../dist/main.mjs";
 
 async function testESM() {
   try {
@@ -20,8 +20,8 @@ async function testESM() {
 
 (async () => {
   try {
-    const playlist = await GetPlaylistVedios(
-      "PL_rXc1ssylNfT3H9vIwiSMNyDM_tgpWnX"
+    const playlist = await GetPlaylistVideos(
+      "PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY"
     );
 
     console.log("Playlist Info:");

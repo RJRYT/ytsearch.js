@@ -171,6 +171,30 @@ const latest = await SearchYt("technology", {
 
 ---
 
+## 📜 Playlist Pagination API
+
+You can fetch playlist details and videos, with support for pagination.
+
+```js
+import { GetPlaylistVideos } from "ytsearch.js";
+
+const playlist = await GetPlaylistVideos("PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY");
+
+console.log(playlist.playlist); // Playlist info
+
+// First page
+playlist.videos.forEach((v) => console.log(v.title));
+
+let page = playlist;
+while (page.hasNextPage) {
+  page = await page.nextPage();
+  if (!page) break;
+  page.videos.forEach((v) => console.log(v.title));
+}
+```
+
+---
+
 ## 🤝 Contributing
 
 1. Fork this repo
@@ -183,7 +207,7 @@ const latest = await SearchYt("technology", {
 
 ## 📜 License
 
-MIT © 2025 \[ytsearch.js contributors]
+MIT © 2025 RJRYT
 
 ---
 

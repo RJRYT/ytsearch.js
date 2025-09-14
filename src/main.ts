@@ -70,7 +70,7 @@ const SearchYt = async (
   return responseData.slice(0, options.limit);
 };
 
-const GetPlaylistVedios = async (playListID: string): Promise<any> => {
+const GetPlaylistVideos = async (playListID: string): Promise<any> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
     throw new Error("Invalid playList ID. It must be a non-empty string.");
   }
@@ -116,7 +116,7 @@ export default SearchYt;
 export {
   extractData,
   SearchYt,
-  GetPlaylistVedios,
+  GetPlaylistVideos,
   DefaultOptions,
   ExpectedTypes,
   ExpectedSorts,
