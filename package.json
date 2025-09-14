@@ -1,6 +1,6 @@
 {
   "name": "ytsearch.js",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A lightweight YouTube search wrapper for Node.js and TypeScript with support for videos, playlists, and channels.",
   "main": "dist/main.js",
   "module": "dist/main.mjs",
