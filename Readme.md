@@ -25,10 +25,10 @@ Requires **Node.js v14+** (ESM supported).
 ### CommonJS
 
 ```js
-const { SearchYt } = require("ytsearch.js");
+const { searchYouTube } = require("ytsearch.js");
 
 (async () => {
-  const results = await SearchYt("Black Panther", { type: "video", limit: 5 });
+  const results = await searchYouTube("Black Panther", { type: "video", limit: 5 });
   results.forEach((item) => console.log(item.type, item.title));
 })();
 ```
@@ -36,9 +36,9 @@ const { SearchYt } = require("ytsearch.js");
 ### ES Modules
 
 ```js
-import { SearchYt } from "ytsearch.js";
+import { searchYouTube } from "ytsearch.js";
 
-const results = await SearchYt("Black Panther", { type: "channel", limit: 3 });
+const results = await searchYouTube("Black Panther", { type: "channel", limit: 3 });
 results.forEach((item) => console.log(item.type, item.title));
 ```
 
@@ -49,7 +49,7 @@ results.forEach((item) => console.log(item.type, item.title));
 ### Function
 
 ```ts
-SearchYt(query: string, options?: {
+searchYouTube(query: string, options?: {
   type?: "video" | "channel" | "playlist",
   sort?: "relevance" | "upload_date" | "view_count" | "rating",
   limit?: number
@@ -144,25 +144,25 @@ SearchYt(query: string, options?: {
 ### Fetch videos
 
 ```js
-const results = await SearchYt("lofi hip hop", { type: "video", limit: 3 });
+const results = await searchYouTube("lofi hip hop", { type: "video", limit: 3 });
 ```
 
 ### Fetch channels
 
 ```js
-const channels = await SearchYt("lofi", { type: "channel", limit: 2 });
+const channels = await searchYouTube("lofi", { type: "channel", limit: 2 });
 ```
 
 ### Fetch playlists
 
 ```js
-const playlists = await SearchYt("lofi study", { type: "playlist", limit: 2 });
+const playlists = await searchYouTube("lofi study", { type: "playlist", limit: 2 });
 ```
 
 ### Sort by upload date
 
 ```js
-const latest = await SearchYt("technology", {
+const latest = await searchYouTube("technology", {
   type: "video",
   sort: "upload_date",
   limit: 5,
@@ -176,9 +176,9 @@ const latest = await SearchYt("technology", {
 You can fetch playlist details and videos, with support for pagination.
 
 ```js
-import { GetPlaylistVideos } from "ytsearch.js";
+import { getPlaylistItems } from "ytsearch.js";
 
-const playlist = await GetPlaylistVideos("PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY");
+const playlist = await getPlaylistItems("PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY");
 
 console.log(playlist.playlist); // Playlist info
 

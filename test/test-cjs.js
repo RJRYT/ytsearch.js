@@ -1,9 +1,9 @@
-const { SearchYt } = require("../dist/main.js");
+const { searchYouTube } = require("../dist/main.js");
 
 async function testCommonJS() {
   try {
     const query = "mallu rap vedan";
-    const results = await SearchYt(query, { type: "playlist" });
+    const results = await searchYouTube(query, { type: "playlist" });
     console.log("CommonJS Test Results:(Count:", results.length + ")");
     console.log(results[0]);
     if (results.length > 0 && results[0].type === "video") {

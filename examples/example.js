@@ -1,7 +1,7 @@
-const { SearchYt } = require("ytsearch.js");
+const { searchYouTube } = require("ytsearch.js");
 
 const main = async() =>{
-  let results = await SearchYt("Iron man");
+  let results = await searchYouTube("Iron man");
   
   console.log(results)
 

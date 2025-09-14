@@ -1,9 +1,9 @@
-import { SearchYt, GetPlaylistVideos } from "../dist/main.mjs";
+import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
 
 async function testESM() {
   try {
     const query = "rick astley never gonna give you up";
-    const results = await SearchYt(query, { type: "video" });
+    const results = await searchYouTube(query, { type: "video" });
     console.log("ESM Test Results:(Count:", results.length + ")");
     console.log(results[0]);
     if (results.length > 0 && results[0].type === "video") {
@@ -20,7 +20,7 @@ async function testESM() {
 
 (async () => {
   try {
-    const playlist = await GetPlaylistVideos(
+    const playlist = await getPlaylistItems(
       "PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY"
     );
 

@@ -1,11 +1,9 @@
 import { fetchResultDataFromYT, fetchPlayListDataFromYT } from "./fetch";
-import axios from "axios";
 import {
   DefaultOptions,
   ExpectedSorts,
   ExpectedTypes,
   ContentObjectKey,
-  PlayListApiUrl,
 } from "./utils/constants";
 import type { SearchOptions, ExtractedItem, SearchPlaylistType } from "./types";
 import {
@@ -25,7 +23,7 @@ import {
  * @returns A promise that resolves to an array of formatted results.
  * @throws If query or options are invalid.
  */
-const SearchYt = async (
+const searchYouTube = async (
   query: string,
   options: SearchOptions = DefaultOptions
 ): Promise<ExtractedItem[]> => {
@@ -70,7 +68,7 @@ const SearchYt = async (
   return responseData.slice(0, options.limit);
 };
 
-const GetPlaylistVideos = async (playListID: string): Promise<any> => {
+const getPlaylistItems = async (playListID: string): Promise<any> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
     throw new Error("Invalid playList ID. It must be a non-empty string.");
   }
@@ -106,17 +104,11 @@ const GetPlaylistVideos = async (playListID: string): Promise<any> => {
   return buildPage(fetchResponse.videos, fetchResponse.continueToken);
 };
 
-/**
- * @deprecated Use `SearchYt` instead.
- */
-const extractData = SearchYt;
-
-export default SearchYt;
+export default searchYouTube;
 
 export {
-  extractData,
-  SearchYt,
-  GetPlaylistVideos,
+  searchYouTube,
+  getPlaylistItems,
   DefaultOptions,
   ExpectedTypes,
   ExpectedSorts,
