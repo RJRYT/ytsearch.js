@@ -1,4 +1,3 @@
-# .github/workflows/test.yml
 name: Run Jest Tests
 
 on:
@@ -14,24 +13,21 @@ jobs:
     name: Jest Tests
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests with coverage
-        run: npx jest --ci --coverage --coverageDirectory=test-results/coverage
-
-      - name: Upload test coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-coverage
-          path: test-results/coverage
-          
+      - name: Run tests
+        run: npm test
