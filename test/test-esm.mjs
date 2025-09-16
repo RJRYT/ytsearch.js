@@ -2,8 +2,9 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
 
 (async function testESM() {
   try {
+    const query = "lofi hip hop";
     console.log("=== ESM Video Search Test ===");
-    const videos = await searchYouTube("rick astley", {
+    const videos = await searchYouTube(query, {
       type: "video",
       sort: "view_count",
       limit: 3,
@@ -11,7 +12,7 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
     videos.forEach((v, i) => console.log(i + 1, v.title, v.watchUrl));
 
     console.log("\n=== ESM Channel Search Test ===");
-    const channels = await searchYouTube("rick astley", {
+    const channels = await searchYouTube(query, {
       type: "channel",
       sort: "relevance",
       limit: 2,
@@ -19,7 +20,7 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
     channels.forEach((c, i) => console.log(i + 1, c.title, c.url));
 
     console.log("\n=== ESM Playlist Search Test ===");
-    const playlists = await searchYouTube("rick roll mix", {
+    const playlists = await searchYouTube(query, {
       type: "playlist",
       sort: "view_count",
       limit: 2,
@@ -28,7 +29,7 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
 
     console.log("\n=== ESM Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
-      "PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY"
+      "PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo"
     );
     console.log("Playlist Info:", playlist.playlist);
 
