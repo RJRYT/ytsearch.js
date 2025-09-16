@@ -3,6 +3,11 @@
 [![NPM Version][npm-version-image]][npm-url]
 [![NPM Downloads][npm-downloads-image]][npm-downloads-url]
 [![NPM Install Size][npm-install-size-image]][npm-install-size-url]
+[![NPM License][npm-license]][npm-url]
+[![NPM Release Date][npm-last-update]][npm-url]
+[![NPM Type Definitions][npm-ts-support]][npm-url]
+[![Run Jest Tests][github-actions-test-image]][github-actions-test-url]
+[![Node.js Package][github-actions-npm-publish-image]][github-actions-npm-publish-url]
 
 > 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube **videos, channels, and playlists** without using the official API. Includes **playlist pagination support** with a clean developer-friendly API.
 
@@ -260,3 +265,10 @@ MIT © 2025 RJRYT
 [npm-install-size-url]: https://packagephobia.com/result?p=ytsearch.js
 [npm-url]: https://npmjs.org/package/ytsearch.js
 [npm-version-image]: https://badgen.net/npm/v/ytsearch.js
+[npm-license]: https://img.shields.io/npm/l/ytsearch.js
+[npm-last-update]: https://img.shields.io/npm/last-update/ytsearch.js/latest?label=NPM%20Release%20Date
+[npm-ts-support]: https://img.shields.io/npm/types/ytsearch.js
+[github-actions-test-image]: https://github.com/RJRYT/ytsearch.js/actions/workflows/test.yml/badge.svg?branch=main
+[github-actions-test-url]: https://github.com/RJRYT/ytsearch.js/actions/workflows/test.yml
+[github-actions-npm-publish-image]: https://github.com/RJRYT/ytsearch.js/actions/workflows/npm-publish.yml/badge.svg
+[github-actions-npm-publish-url]: https://github.com/RJRYT/ytsearch.js/actions/workflows/npm-publish.yml
