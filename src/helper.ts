@@ -1,4 +1,11 @@
-import type { ExtractedItem, RawSearchResult, Thumbnail } from "./types";
+import type {
+  ExtractedItem,
+  PlaylistInfo,
+  PlaylistVideo,
+  RawSearchResult,
+  SearchPlaylistType,
+  Thumbnail,
+} from "./types";
 import {
   BaseUrl,
   DefaultImageName,
@@ -213,6 +220,41 @@ export const fetchHtmlData = async (
   return (await axios.get(url, params)).data;
 };
 
+/**
+ * Parses raw YouTube alert renderers into a simplified, uniform structure.
+ *
+ * @function parseAlerts
+ * @param {any[]} alerts - Raw alert objects from YouTube API response.
+ *
+ * @returns {Array<{ type: string, message: string }>} An array of parsed alerts, each with:
+ * - `type` {string} - Alert type (e.g., `"ERROR"`, `"INFO"`, `"WARNING"`, `"UNKNOWN"`).
+ * - `message` {string} - Human-readable alert message extracted from the renderer.
+ *
+ * @example
+ * // Input from YouTube API
+ * const rawAlerts = [
+ *   {
+ *     alertRenderer: {
+ *       type: "ERROR",
+ *       text: { runs: [{ text: "This playlist is unavailable." }] }
+ *     }
+ *   },
+ *   {
+ *     alertWithButtonRenderer: {
+ *       type: "INFO",
+ *       text: { simpleText: "Playlist updated successfully." }
+ *     }
+ *   }
+ * ];
+ *
+ * // Output
+ * const parsed = parseAlerts(rawAlerts);
+ * console.log(parsed);
+ * // [
+ * //   { type: "ERROR", message: "This playlist is unavailable." },
+ * //   { type: "INFO", message: "Playlist updated successfully." }
+ * // ]
+ */
 export function parseAlerts(
   alerts: any[]
 ): { type: string; message: string }[] {
@@ -238,21 +280,30 @@ export function parseAlerts(
   });
 }
 
+/**
+ * Formats a raw YouTube `playlistVideoRenderer` object into a normalized structure.
+ *
+ * @function FormatPlaylistVedioObject
+ * @param {any} videoRenderer - Raw `playlistVideoRenderer` object from YouTube API.
+ *
+ * @returns {PlaylistVideo | undefined} A normalized playlist video object, or `undefined`
+ * if input is invalid.
+ */
 export const FormatPlaylistVedioObject = (
   videoRenderer: any
-): any | undefined => {
+): PlaylistVideo => {
   const id = videoRenderer.videoId;
-  const title = videoRenderer.title.runs[0].text;
+  const title = videoRenderer.title.runs[0].text ?? "Untitled";
   const thumbnail: Thumbnail = {
-    url: videoRenderer.thumbnail.thumbnails[0].url,
-    width: videoRenderer.thumbnail.thumbnails[0].width,
-    height: videoRenderer.thumbnail.thumbnails[0].height,
+    url: videoRenderer.thumbnail.thumbnails[0].url ?? "",
+    width: videoRenderer.thumbnail.thumbnails[0].width ?? 0,
+    height: videoRenderer.thumbnail.thumbnails[0].height ?? 0,
   };
-  const index = videoRenderer.index.simpleText;
+  const index = videoRenderer.index.simpleText ?? "";
 
-  const views = videoRenderer.videoInfo?.runs[0]?.text || "";
+  const views = videoRenderer.videoInfo?.runs[0]?.text ?? "";
 
-  const duration = videoRenderer.lengthText?.simpleText || "00:00";
+  const duration = videoRenderer.lengthText?.simpleText ?? "00:00";
   const seconds = toSeconds(duration);
 
   const author = videoRenderer.shortBylineText?.runs?.[0];
@@ -260,12 +311,12 @@ export const FormatPlaylistVedioObject = (
     author?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl ||
     author?.navigationEndpoint?.commandMetadata?.webCommandMetadata?.url;
 
-  const publishedAt = videoRenderer.videoInfo?.runs[2]?.text || "";
+  const publishedAt = videoRenderer.videoInfo?.runs[2]?.text ?? "";
   const playlistId = videoRenderer.navigationEndpoint.watchEndpoint.playlistId;
   const watchUrl =
     BaseUrl +
-      videoRenderer.navigationEndpoint.commandMetadata.webCommandMetadata.url ||
-    `/watch?v=${id}&list=&${playlistId}` ||
+      (videoRenderer.navigationEndpoint?.commandMetadata?.webCommandMetadata
+        ?.url ?? `/watch?v=${id}${playlistId ? `&list=${playlistId}` : ""}`) ||
     `/watch?v=${id}`;
   const image = getNormalizedQueryFreeUrl(ImageBaseUrl + id + DefaultImageName);
 
@@ -287,65 +338,99 @@ export const FormatPlaylistVedioObject = (
       : null,
     watchUrl,
     publishedAt,
-  };
+  } as PlaylistVideo;
 };
 
+/**
+ * Formats raw YouTube playlist metadata into a normalized structure.
+ *
+ * @function FormatPlayListInfoObject
+ * @param {any} playlistInfo - Raw YouTube `playlistInfo` object.
+ * @param {string} playListID - The playlist ID.
+ *
+ * @returns {PlaylistInfo} A normalized playlist info object.
+ */
 export const FormatPlayListInfoObject = (
   playlistInfo: any,
   playListID: string
-) => {
+): PlaylistInfo => {
+  const videoCountStr =
+    playlistInfo.content?.pageHeaderViewModel?.metadata
+      ?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[1]?.text
+      ?.content?.replace(/ videos/g, "") ?? "0";
+
+  const videoCount = parseInt(videoCountStr, 10) || 0;
+  const expectedPages = Math.ceil(videoCount / 100);
+
   return {
     id: playListID,
-    title: playlistInfo.pageTitle,
+    title: playlistInfo.pageTitle ?? "",
     description:
-      playlistInfo.content.pageHeaderViewModel.description
-        .descriptionPreviewViewModel.description.content,
+      playlistInfo.content?.pageHeaderViewModel?.description
+        ?.descriptionPreviewViewModel?.description?.content ?? "",
     thumbnail: {
-      url: playlistInfo.content.pageHeaderViewModel.heroImage
-        .contentPreviewImageViewModel.image.sources[0].url,
+      url:
+        playlistInfo.content?.pageHeaderViewModel?.heroImage
+          ?.contentPreviewImageViewModel?.image?.sources?.[0]?.url ?? "",
       width:
-        playlistInfo.content.pageHeaderViewModel.heroImage
-          .contentPreviewImageViewModel.image.sources[0].width,
+        playlistInfo.content?.pageHeaderViewModel?.heroImage
+          ?.contentPreviewImageViewModel?.image?.sources?.[0]?.width ?? 0,
       height:
-        playlistInfo.content.pageHeaderViewModel.heroImage
-          .contentPreviewImageViewModel.image.sources[0].height,
+        playlistInfo.content?.pageHeaderViewModel?.heroImage
+          ?.contentPreviewImageViewModel?.image?.sources?.[0]?.height ?? 0,
     },
     image:
-      playlistInfo.content.pageHeaderViewModel.heroImage
-        .contentPreviewImageViewModel.image.sources[0].url,
+      playlistInfo.content?.pageHeaderViewModel?.heroImage
+        ?.contentPreviewImageViewModel?.image?.sources?.[0]?.url ?? "",
     author: {
-      name: playlistInfo.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows[0].metadataParts[0].avatarStack.avatarStackViewModel.text.content.replace(
-        /by /g,
-        ""
-      ),
+      name:
+        playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts?.[0]?.avatarStack?.avatarStackViewModel?.text?.content?.replace(
+          /by /g,
+          ""
+        ) ?? "",
       url:
         BaseUrl +
-        playlistInfo.content.pageHeaderViewModel.metadata
-          .contentMetadataViewModel.metadataRows[0].metadataParts[0].avatarStack
-          .avatarStackViewModel.text.commandRuns[0].onTap.innertubeCommand
-          .browseEndpoint.canonicalBaseUrl,
-      logo: playlistInfo.content.pageHeaderViewModel.metadata
-        .contentMetadataViewModel.metadataRows[0].metadataParts[0].avatarStack
-        .avatarStackViewModel.avatars[0].avatarViewModel.image.sources[0].url,
+          playlistInfo.content?.pageHeaderViewModel?.metadata
+            ?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts?.[0]
+            ?.avatarStack?.avatarStackViewModel?.text?.commandRuns?.[0]?.onTap
+            ?.innertubeCommand?.browseEndpoint?.canonicalBaseUrl || "",
+      logo:
+        playlistInfo.content?.pageHeaderViewModel?.metadata
+          ?.contentMetadataViewModel?.metadataRows?.[0]?.metadataParts?.[0]
+          ?.avatarStack?.avatarStackViewModel?.avatars?.[0]?.avatarViewModel
+          ?.image?.sources?.[0]?.url ?? "",
     },
-    videoCount:
-      playlistInfo.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows[1].metadataParts[1].text.content.replace(
-        / videos/g,
-        ""
-      ),
+    videoCount: videoCountStr,
     viewsCount:
-      playlistInfo.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows[1].metadataParts[2].text.content.replace(
+      playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[2]?.text?.content?.replace(
         / views/g,
         ""
-      ),
-  };
+      ) ?? "0",
+    expectedPages,
+  } as PlaylistInfo;
 };
 
+/**
+ * Fetches the next set of playlist items (continuation) from YouTube.
+ *
+ * @function fetchPlaylistNextChunk
+ * @param {string} apiToken - YouTube API token (from initial playlist response).
+ * @param {string | null} continueToken - Token for fetching the next page of results.
+ * @param {string} clientVersion - YouTube client version.
+ *
+ * @returns {Promise<SearchPlaylistType>} Object containing:
+ * - `apiToken` {string} - Same API token passed in.
+ * - `clientVersion` {string} - Same client version passed in.
+ * - `continueToken` {string | null} - Token for the next page (if any).
+ * - `videos` {RawSearchResult[]} - Raw video renderer objects.
+ *
+ * @throws {Error} When no videos are found in the continuation response.
+ */
 export const fetchPlaylistNextChunk = async (
   apiToken: string,
-  continueToken: string,
+  continueToken: string | null,
   clientVersion: string
-) => {
+): Promise<SearchPlaylistType> => {
   const response = await axios.post(
     PlayListApiUrl + apiToken,
     {
@@ -372,15 +457,15 @@ export const fetchPlaylistNextChunk = async (
   );
   const initialData = response.data;
 
-  let playlistData: any[] =
-    initialData.onResponseReceivedActions[0].appendContinuationItemsAction
-      .continuationItems || [];
+  const playlistData: any[] =
+    initialData?.onResponseReceivedActions?.[0]?.appendContinuationItemsAction
+      ?.continuationItems || [];
 
   if (!playlistData.length) {
     throw new Error("No videos found in playlist.");
   }
 
-  const videos = playlistData.filter((c) =>
+  const videos: RawSearchResult[] = playlistData.filter((c) =>
     c.hasOwnProperty("playlistVideoRenderer")
   );
 
@@ -396,12 +481,12 @@ export const fetchPlaylistNextChunk = async (
         (c: any) => c.hasOwnProperty("continuationCommand")
       )?.continuationCommand?.token ||
       null;
-  } else continueToken = ""; 
+  } else continueToken = null;
 
   return {
     apiToken,
     clientVersion,
     continueToken,
-    videos: videos as RawSearchResult[],
+    videos,
   };
 };

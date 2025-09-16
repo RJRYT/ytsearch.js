@@ -5,14 +5,20 @@ import { ExpectedSorts, ExpectedTypes } from "../utils/constants";
  */
 export type RawSearchResult = Record<string, unknown>;
 
+/**
+ * Expected extracted playlist items result
+ */
 export interface SearchPlaylistResponse {
   apiToken: string;
   clientVersion: string;
-  continueToken: string;
-  playlistInfo: any;
+  continueToken: string | null;
+  playlistInfo?: object | null;
   videos: RawSearchResult[];
 };
 
+/**
+ * playlist search response types
+ */
 export type SearchPlaylistType = SearchPlaylistResponse;
 
 /**
@@ -44,6 +50,17 @@ export interface Thumbnail {
 }
 
 /**
+ * Author object
+ */
+export interface Author {
+  name: string;
+  url: string;
+  logo?: string;
+  verified?: boolean;
+  isArtist?: boolean;
+}
+
+/**
  * Expected extracted vedio result
  */
 export interface VideoResult {
@@ -56,11 +73,7 @@ export interface VideoResult {
   shortViewCount: string;
   duration: string;
   seconds: number;
-  author: {
-    name: string;
-    url: string;
-    verified: boolean;
-  } | null;
+  author: Author | null;
   watchUrl: string;
   publishedAt: string;
 }
@@ -92,12 +105,7 @@ export interface PlaylistResult {
   image: string;
   thumbnail: Thumbnail;
   videoCount: number;
-  author: {
-    name: string;
-    url: string;
-    verified: boolean;
-    isArtist: boolean;
-  } | null;
+  author: Author | null;
   url: string;
 }
 
@@ -105,3 +113,46 @@ export interface PlaylistResult {
  * Extracted item which can be a video, channel, or playlist
  */
 export type ExtractedItem = VideoResult | ChannelResult | PlaylistResult;
+
+/**
+ * Playlist info header object from YouTube
+ */
+export interface PlaylistInfo {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: Thumbnail;
+  image: string;
+  author: Author;
+  videoCount: string;
+  viewsCount: string;
+  expectedPages: number;
+}
+
+/**
+ * Extracted playlist video item
+ */
+export interface PlaylistVideo {
+  type: "video";
+  id: string;
+  index: string;
+  title: string;
+  image: string;
+  thumbnail: Thumbnail;
+  views: string;
+  duration: string;
+  seconds: number;
+  author: Author | null;
+  watchUrl: string;
+  publishedAt: string;
+}
+
+/**
+ * Playlist page result with pagination support
+ */
+export interface PlaylistPage {
+  playlist: PlaylistInfo;
+  videos: PlaylistVideo[];
+  hasNextPage: boolean;
+  nextPage: () => Promise<PlaylistPage | null>;
+}

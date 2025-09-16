@@ -104,13 +104,29 @@ const fetchResultDataFromYT = async (
     } else {
       throw new Error(`No results were found.`);
     }
-  } catch (error: any) {
-    throw new Error(
-      `Error searching for query '${query}': ${error.message ?? error}`
-    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error searching for query '${query}': ${message}`);
   }
 };
 
+/**
+ * Fetches playlist metadata and the first page of videos from YouTube.
+ *
+ * @param playListID - The playlist ID (e.g. `"PLBCF2DAC6FFB574DE"`).
+ * @returns {Promise<SearchPlaylistType>} Object containing:
+ * - `apiToken` {string} - Extracted YouTube API token.
+ * - `clientVersion` {string} - YouTube client version (used in API requests).
+ * - `continueToken` {string | null} - Token for the next page of videos (if any).
+ * - `playlistInfo` {unknown} - Playlist metadata (parsed from header).
+ * - `videos` {RawSearchResult[]} - List of raw video renderer objects.
+ *
+ * @throws {Error} If:
+ * - `playListID` is invalid.
+ * - YouTube HTML could not be parsed.
+ * - Playlist is invalid or has no videos.
+ * - A YouTube error alert is returned.
+ */
 const fetchPlayListDataFromYT = async (
   playListID: string
 ): Promise<SearchPlaylistType> => {
@@ -184,21 +200,22 @@ const fetchPlayListDataFromYT = async (
     }
 
     // Filter out continuation tokens (they appear for load-more)
-    const videos = playlistData.filter((c) =>
+    const videos: RawSearchResult[] = playlistData.filter((c) =>
       c.hasOwnProperty("playlistVideoRenderer")
     );
     const ContinueObject = playlistData.filter((c) =>
       c.hasOwnProperty("continuationItemRenderer")
     );
 
-    let continueToken = null;
-    if (ContinueObject) {
+    let continueToken: string | null = null;
+    if (ContinueObject.length > 0) {
       continueToken =
         ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint
-          ?.continuationCommand?.token ||
+          ?.continuationCommand?.token ??
         ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
           (c: any) => c.hasOwnProperty("continuationCommand")
-        )?.continuationCommand?.token || null;
+        )?.continuationCommand?.token ??
+        null;
     }
 
     let apiToken =
@@ -215,10 +232,11 @@ const fetchPlayListDataFromYT = async (
       clientVersion,
       continueToken,
       playlistInfo,
-      videos: videos as RawSearchResult[],
+      videos,
     };
-  } catch (error: any) {
-    throw new Error(`Error searching for playlist '${playListID}': ${error}`);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error fetching playlist '${playListID}': ${message}`);
   }
 };
 

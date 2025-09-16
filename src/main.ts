@@ -5,7 +5,13 @@ import {
   ExpectedTypes,
   ContentObjectKey,
 } from "./utils/constants";
-import type { SearchOptions, ExtractedItem, SearchPlaylistType } from "./types";
+import type {
+  SearchOptions,
+  ExtractedItem,
+  RawSearchResult,
+  SearchPlaylistType,
+  PlaylistPage,
+} from "./types";
 import {
   FormatChannelObject,
   FormatPlayListInfoObject,
@@ -16,12 +22,71 @@ import {
 } from "./helper";
 
 /**
- * Search and formats YouTube content data (videos, channels, playlists).
+ * Searches YouTube for videos, channels, or playlists and formats the results.
  *
- * @param query - The search query string.
- * @param options - Optional search options (type, sort, limit).
- * @returns A promise that resolves to an array of formatted results.
- * @throws If query or options are invalid.
+ * @param query - The search query string (e.g. `"JavaScript tutorial"`).
+ * @param options - Optional search options:
+ * - `type` {"video" | "channel" | "playlist"} - The type of content to search for.
+ * - `sort` {string} - Sorting option (must be one of `ExpectedSorts`).
+ * - `limit` {number} - Maximum number of results to return.
+ * Defaults are taken from `DefaultOptions`.
+ *
+ * @returns {Promise<ExtractedItem[]>}
+ * Resolves to an array of extracted and normalized results, depending on `options.type`:
+ *
+ * - **VideoResult** (`{ type: "video" }`)
+ *   ```ts
+ *   {
+ *     type: "video";
+ *     id: string;
+ *     title: string;
+ *     image: string;
+ *     thumbnail: Thumbnail;
+ *     viewCount: number;
+ *     shortViewCount: string;
+ *     duration: string;
+ *     seconds: number;
+ *     author: Author | null;
+ *     watchUrl: string;
+ *     publishedAt: string;
+ *   }
+ *   ```
+ *
+ * - **ChannelResult** (`{ type: "channel" }`)
+ *   ```ts
+ *   {
+ *     type: "channel";
+ *     id: string;
+ *     title: string;
+ *     image: string;
+ *     thumbnail: Thumbnail;
+ *     description: string;
+ *     subscriberCount: string;
+ *     url: string;
+ *     verified: boolean;
+ *     isArtist: boolean;
+ *   }
+ *   ```
+ *
+ * - **PlaylistResult** (`{ type: "playlist" }`)
+ *   ```ts
+ *   {
+ *     type: "playlist";
+ *     contentType: string;
+ *     id: string;
+ *     title: string;
+ *     image: string;
+ *     thumbnail: Thumbnail;
+ *     videoCount: number;
+ *     author: Author | null;
+ *     url: string;
+ *   }
+ *   ```
+ *
+ * @throws {Error}
+ * - If `query` is not a non-empty string.
+ * - If `options.type` is not one of `"video" | "channel" | "playlist"`.
+ * - If `options.sort` is not a valid sorting option.
  */
 const searchYouTube = async (
   query: string,
@@ -68,7 +133,34 @@ const searchYouTube = async (
   return responseData.slice(0, options.limit);
 };
 
-const getPlaylistItems = async (playListID: string): Promise<any> => {
+/**
+ * Fetches a YouTube playlist (metadata + items) and provides paginated access.
+ *
+ * @param playListID - The playlist ID (e.g. `"PLBCF2DAC6FFB574DE"`).
+ *
+ * @returns {Promise<PlaylistPage>}
+ * The first page of the playlist results. Includes playlist info, video list,
+ * and methods for pagination:
+ *
+ * ```ts
+ * {
+ *   playlist: PlaylistInfo;
+ *   videos: PlaylistVideo[];
+ *   hasNextPage: boolean;
+ *   nextPage: () => Promise<PlaylistPage | null>;
+ * }
+ * ```
+ *
+ * - `playlist`: Normalized playlist info.
+ * - `videos`: Array of formatted video objects.
+ * - `hasNextPage`: Indicates whether more videos are available.
+ * - `nextPage()`: Loads the next page, or returns `null` if no continuation exists.
+ *
+ * @throws {Error}
+ * - If `playListID` is not a non-empty string.
+ * - If the playlist fetch fails or YouTube returns an invalid response.
+ */
+const getPlaylistItems = async (playListID: string): Promise<PlaylistPage> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
     throw new Error("Invalid playList ID. It must be a non-empty string.");
   }
@@ -77,7 +169,10 @@ const getPlaylistItems = async (playListID: string): Promise<any> => {
     playListID
   );
 
-  const buildPage = (videos: any[], continuationToken: string): any => {
+  const buildPage = (
+    videos: RawSearchResult[],
+    continuationToken: string | null
+  ): PlaylistPage => {
     return {
       playlist: FormatPlayListInfoObject(
         fetchResponse.playlistInfo,
