@@ -26,15 +26,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build Package
-        run: npm run build
-
-      - name: Run tests
-        run: npm test
+      - name: Run tests with coverage
+        run: |
+          mkdir -p test-results/coverage
+          npx jest --ci --coverage --coverageDirectory=test-results/coverage --reporters=default --reporters=jest-junit
 
       - name: Upload test coverage
-        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: coverage
+          name: test-coverage
+          path: test-results/coverage
+
+      - name: Upload Jest JUnit test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/junit.xml
