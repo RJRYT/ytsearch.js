@@ -4,13 +4,11 @@
 [![NPM Downloads][npm-downloads-image]][npm-downloads-url]
 [![NPM Install Size][npm-install-size-image]][npm-install-size-url]
 
-> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube **videos, channels, and playlists** without using the official API.
+> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube **videos, channels, and playlists** without using the official API. Includes **playlist pagination support** with a clean developer-friendly API.
 
 ---
 
 ## 🚀 Installation
-
-This package is available via [npm](https://www.npmjs.com/):
 
 ```bash
 npm install ytsearch.js
@@ -46,95 +44,144 @@ results.forEach((item) => console.log(item.type, item.title));
 
 ## 📑 API
 
-### Function
+### `searchYouTube`
 
 ```ts
-searchYouTube(query: string, options?: {
-  type?: "video" | "channel" | "playlist",
-  sort?: "relevance" | "upload_date" | "view_count" | "rating",
-  limit?: number
-}): Promise<Array<Result>>
+searchYouTube(query: string, options?: SearchOptions): Promise<ExtractedItem[]>;
 ```
 
-### Result Types
+#### Options
 
-#### Video Object
-
-```js
-[
-  {
-    type: "video",
-    id: "dQw4w9WgXcQ",
-    title: "Rick Astley - Never Gonna Give You Up",
-    thumbnail: {
-      url: 'https://i.ytimg.com/vi/XXXXX',
-      width: 360,
-      height: 202
-    },
-    viewCount: 1692378655,
-    shortViewCount: "1.7B",
-    duration: "3:34",
-    seconds: 214,
-    author: {
-      name: "Rick Astley",
-      url: "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
-      verified: true
-    },
-    watchUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    publishedAt: "15 years ago"
-  },
-  ...
-]
+```ts
+interface SearchOptions {
+  type?: "video" | "channel" | "playlist";
+  sort?: "relevance" | "upload_date" | "view_count" | "rating";
+  limit?: number;
+}
 ```
 
-#### Channel Object
+#### Return Types
 
-```js
-[
-  {
-    type: "channel",
-    id: "zjskdfj-nxs",
-    title: "Rick Roll",
-    thumbnail: {
-      url: 'https://i.ytimg.com/vi/XXXXX',
-      width: 360,
-      height: 202
-    },
-    description: "rick roll...",
-    subscriberCount: "3.2M",
-    url: 'https://www.youtube.com/channel/XYZ',
-    verified: true,
-    isArtist: false
+##### Video Object
+
+```json
+{
+  "type": "video",
+  "id": "dQw4w9WgXcQ",
+  "title": "Rick Astley - Never Gonna Give You Up",
+  "image": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+  "thumbnail": { "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg", "width": 360, "height": 202 },
+  "viewCount": 1692378655,
+  "shortViewCount": "1.7B",
+  "duration": "3:34",
+  "seconds": 214,
+  "author": {
+    "name": "Rick Astley",
+    "url": "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+    "verified": true
   },
-  ...
-]
+  "watchUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "publishedAt": "15 years ago"
+}
 ```
 
-#### Playlist Object
+##### Channel Object
 
-```js
-[
-  {
-    type: "playlist",
-    contentType: "vedio",
-    id: "esxdrctfvygbhunj",
-    title: "Rick Roll Mix",
-    thumbnail: {
-      url: 'https://i.ytimg.com/vi/XXXXX',
-      width: 360,
-      height: 202
-    },
-    videoCount: 50,
-    author: {
-      name: "Rick Roll",
-      url: 'https://www.youtube.com/channel/XYZ',
-      verified: true,
-      isArtist: false
-    },
-    url: "https://www.youtube.com/playlist?list=XYZ123"
+```json
+{
+  "type": "channel",
+  "id": "UC1234567890",
+  "title": "Rick Roll Channel",
+  "image": "https://yt3.ggpht.com/ytc/AMLnZu-XXXXX=s176-c-k-c0x00ffffff-no-rj",
+  "thumbnail": { "url": "https://yt3.ggpht.com/ytc/AMLnZu-XXXXX=s176-c-k-c0x00ffffff-no-rj", "width": 360, "height": 202 },
+  "description": "All about Rick Rolls.",
+  "subscriberCount": "3.2M",
+  "url": "https://www.youtube.com/channel/UC1234567890",
+  "verified": true,
+  "isArtist": false
+}
+```
+
+##### Playlist Object
+
+```json
+{
+  "type": "playlist",
+  "contentType": "video",
+  "id": "PL1234567890",
+  "title": "Rick Roll Mix",
+  "image": "https://i.ytimg.com/vi/XXXXX/hqdefault.jpg",
+  "thumbnail": { "url": "https://i.ytimg.com/vi/XXXXX/hqdefault.jpg", "width": 360, "height": 202 },
+  "videoCount": 50,
+  "author": {
+    "name": "Rick Roll",
+    "url": "https://www.youtube.com/channel/UC1234567890",
+    "verified": true,
+    "isArtist": false
   },
-  ...
-]
+  "url": "https://www.youtube.com/playlist?list=PL1234567890"
+}
+```
+
+---
+
+### `getPlaylistItems`
+
+Fetch a playlist with **videos and pagination support**.
+
+```ts
+getPlaylistItems(playlistId: string): Promise<PlaylistPage>;
+```
+
+#### PlaylistPage Object
+
+```ts
+interface PlaylistPage {
+  playlist: PlaylistInfo;
+  videos: PlaylistVideo[];
+  hasNextPage: boolean;
+  nextPage: () => Promise<PlaylistPage | null>;
+}
+```
+
+#### PlaylistInfo
+
+```json
+{
+  "id": "PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY",
+  "title": "Lo-fi Hip Hop Mix",
+  "description": "Best lo-fi hip hop tracks for study and relaxation.",
+  "thumbnail": { "url": "https://i.ytimg.com/vi/XXXXX/hqdefault.jpg", "width": 360, "height": 202 },
+  "image": "https://i.ytimg.com/vi/XXXXX/hqdefault.jpg",
+  "author": {
+    "name": "LoFi Girl",
+    "url": "https://www.youtube.com/c/LofiGirl",
+    "verified": true,
+    "isArtist": false
+  },
+  "videoCount": "450",
+  "viewsCount": "10M",
+  "expectedPages": 5
+}
+```
+
+#### PlaylistVideo
+
+```json
+{
+  "type": "video",
+  "id": "abc123",
+  "index": "1",
+  "title": "Lo-fi Chill Beat",
+  "image": "https://i.ytimg.com/vi/abc123/hqdefault.jpg",
+  "thumbnail": { "url": "https://i.ytimg.com/vi/abc123/hqdefault.jpg", "width": 360, "height": 202 },
+  "views": "2.3M",
+  "duration": "2:14",
+  "seconds": 134,
+  "author": { "name": "LoFi Artist", "url": "https://www.youtube.com/c/LoFiArtist" },
+  "watchUrl": "https://www.youtube.com/watch?v=abc123",
+  "publishedAt": "2 years ago"
+}
 ```
 
 ---
@@ -169,18 +216,14 @@ const latest = await searchYouTube("technology", {
 });
 ```
 
----
-
-## 📜 Playlist Pagination API
-
-You can fetch playlist details and videos, with support for pagination.
+### Paginate a playlist
 
 ```js
 import { getPlaylistItems } from "ytsearch.js";
 
 const playlist = await getPlaylistItems("PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY");
 
-console.log(playlist.playlist); // Playlist info
+console.log(playlist.playlist.title); // Playlist info
 
 // First page
 playlist.videos.forEach((v) => console.log(v.title));
