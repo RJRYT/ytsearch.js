@@ -36,7 +36,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Upload test coverage (optional)
+      - name: Upload test coverage
         if: success()
         uses: actions/upload-artifact@v3
         with:
