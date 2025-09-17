@@ -1,5 +1,5 @@
 import type {
-  ExtractedItem,
+  SearchResult,
   PlaylistInfo,
   PlaylistVideo,
   RawSearchResult,
@@ -14,22 +14,23 @@ import {
   PlaylistUrl,
   WatchUrl,
 } from "./utils/constants";
+import { fetchApiData } from "./utils/http";
+import { YtSearchError } from "./utils/errors";
 import {
   findFirstMatchingValue,
   getNormalizedQueryFreeUrl,
   shortNumber,
   toSeconds,
 } from "./utils/utils";
-import axios from "axios";
 
 /**
- * Formats a videoRenderer object into an ExtractedItem.
+ * Formats a videoRenderer object into an SearchResult.
  * @param videoRenderer - The videoRenderer object from YouTube search results.
- * @returns {ExtractedItem | undefined} The formatted video item or undefined if invalid.
+ * @returns {SearchResult | undefined} The formatted video item or undefined if invalid.
  */
 export const FormatVedioObject = (
   videoRenderer: any
-): ExtractedItem | undefined => {
+): SearchResult | undefined => {
   const id = videoRenderer.videoId;
   const title = videoRenderer.title.runs[0].text;
   const thumbnail: Thumbnail = {
@@ -84,13 +85,13 @@ export const FormatVedioObject = (
 };
 
 /**
- * Formats a channelRenderer object into an ExtractedItem.
+ * Formats a channelRenderer object into an SearchResult.
  * @param channelRenderer - The channelRenderer object from YouTube search results.
- * @returns {ExtractedItem | undefined} The formatted channel item or undefined if invalid.
+ * @returns {SearchResult | undefined} The formatted channel item or undefined if invalid.
  */
 export const FormatChannelObject = (
   channelRenderer: any
-): ExtractedItem | undefined => {
+): SearchResult | undefined => {
   const id = channelRenderer.channelId;
   const title = channelRenderer.title.simpleText;
   const thumbnail: Thumbnail = {
@@ -136,13 +137,13 @@ export const FormatChannelObject = (
 };
 
 /**
- * Formats a playlistRenderer object into an ExtractedItem.
+ * Formats a playlistRenderer object into an SearchResult.
  * @param playlistRenderer - The playlistRenderer object from YouTube search results.
- * @returns {ExtractedItem | undefined} The formatted playlist item or undefined if invalid.
+ * @returns {SearchResult | undefined} The formatted playlist item or undefined if invalid.
  */
 export const FormatPlaylistObject = (
   playlistRenderer: any
-): ExtractedItem | undefined => {
+): SearchResult | undefined => {
   const id = playlistRenderer.contentId;
   const title = playlistRenderer.metadata.lockupMetadataViewModel.title.content;
 
@@ -204,20 +205,6 @@ export const FormatPlaylistObject = (
       : null,
     url: PlaylistUrl + id,
   };
-};
-
-/**
- * Fetches and parses HTML data to extract YouTube initial data.
- * @param url - The URL to fetch HTML data from.
- * @param params - The query parameters to include in the request.
- * @returns {Promise<any>} A promise that resolves to the parsed initial data object.
- * @throws If parsing fails or initial data is not found.
- */
-export const fetchHtmlData = async (
-  url: string,
-  params: object
-): Promise<any> => {
-  return (await axios.get(url, params)).data;
 };
 
 /**
@@ -355,9 +342,10 @@ export const FormatPlayListInfoObject = (
   playListID: string
 ): PlaylistInfo => {
   const videoCountStr =
-    playlistInfo.content?.pageHeaderViewModel?.metadata
-      ?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[1]?.text
-      ?.content?.replace(/ videos/g, "") ?? "0";
+    playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[1]?.text?.content?.replace(
+      / videos/g,
+      ""
+    ) ?? "0";
 
   const videoCount = parseInt(videoCountStr, 10) || 0;
   const expectedPages = Math.ceil(videoCount / 100);
@@ -424,14 +412,14 @@ export const FormatPlayListInfoObject = (
  * - `continueToken` {string | null} - Token for the next page (if any).
  * - `videos` {RawSearchResult[]} - Raw video renderer objects.
  *
- * @throws {Error} When no videos are found in the continuation response.
+ * @throws {YtSearchError} When no videos are found in the continuation response.
  */
 export const fetchPlaylistNextChunk = async (
   apiToken: string,
   continueToken: string | null,
   clientVersion: string
 ): Promise<SearchPlaylistType> => {
-  const response = await axios.post(
+  const initialData = await fetchApiData(
     PlayListApiUrl + apiToken,
     {
       continuation: continueToken,
@@ -455,14 +443,16 @@ export const fetchPlaylistNextChunk = async (
       },
     }
   );
-  const initialData = response.data;
 
   const playlistData: any[] =
     initialData?.onResponseReceivedActions?.[0]?.appendContinuationItemsAction
       ?.continuationItems || [];
 
   if (!playlistData.length) {
-    throw new Error("No videos found in playlist.");
+    throw new YtSearchError(
+      "NO_PLAYLIST_RESULTS",
+      "No videos found in playlist."
+    );
   }
 
   const videos: RawSearchResult[] = playlistData.filter((c) =>

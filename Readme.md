@@ -52,7 +52,7 @@ results.forEach((item) => console.log(item.type, item.title));
 ### `searchYouTube`
 
 ```ts
-searchYouTube(query: string, options?: SearchOptions): Promise<ExtractedItem[]>;
+searchYouTube(query: string, options?: SearchOptions): Promise<SearchResult[]>;
 ```
 
 #### Options
@@ -240,6 +240,65 @@ while (page.hasNextPage) {
   page.videos.forEach((v) => console.log(v.title));
 }
 ```
+
+---
+
+## ⚠️ Error Handling
+
+All errors in `ytsearch.js` are standardized using the custom `YtSearchError` class. This makes it easy to differentiate error types programmatically.
+
+### Example
+
+<details>
+<summary>Click to view example code</summary>
+
+```js
+import { searchYouTube } from "ytsearch.js";
+
+searchYouTube("invalid query", { type: "video" })
+  .then((results) => {
+    console.log(results);
+  })
+  .catch((err) => {
+    if (err.name === "YtSearchError") {
+      console.error("Error Code:", err.code);
+      console.error("Message:", err.message);
+      console.error("Metadata:", err.metadata);
+    } else {
+      // Unexpected runtime error
+      console.error("Unexpected error:", err);
+    }
+  });
+```
+
+</details>
+
+### Error Codes
+
+<details>
+<summary>Click to view all possible error codes</summary>
+
+```ts
+export type YtSearchErrorCode =
+  | "INVALID_QUERY"         // Search query is empty or invalid
+  | "INVALID_TYPE"          // Invalid search type option
+  | "INVALID_SORT"          // Invalid sort option
+  | "PARSE_ERROR"           // Failed to parse YouTube data
+  | "NO_RESULTS"            // No results found for the query
+  | "RATE_LIMIT"            // YouTube rate-limited the request
+  | "YOUTUBE_ERROR"         // General YouTube API/page error
+  | "YOUTUBE_UNAVAILABLE"   // YouTube service is unavailable
+  | "NETWORK_UNAVAILABLE"   // Network error (Axios)
+  | "INVALID_PLAYLIST"      // Playlist ID is invalid
+  | "NO_PLAYLIST_RESULTS"   // No videos found in playlist
+  | "UNKNOWN";              // Fallback for unclassified errors
+```
+
+</details>
+
+### Metadata
+
+Every `YtSearchError` may include a `metadata` object (like the request URL, params, or body) to assist debugging.
 
 ---
 

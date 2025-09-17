@@ -15,8 +15,10 @@ import {
   PlaylistUrl,
   SortFilters,
 } from "./utils/constants";
-import { fetchHtmlData, parseAlerts } from "./helper";
+import { parseAlerts } from "./helper";
+import { fetchHtmlData } from "./utils/http";
 import { getNormalizedQueryFreeUrl } from "./utils/utils";
+import { YtSearchError } from "./utils/errors";
 
 /**
  * Searches YouTube for videos, channels, or playlists.
@@ -31,21 +33,27 @@ const fetchResultDataFromYT = async (
   options: SearchOptions = DefaultOptions
 ): Promise<RawSearchResult[]> => {
   if (typeof query !== "string" || query.trim() === "") {
-    throw new Error(
-      "Invalid search query. Search query must be a non-empty string."
+    throw new YtSearchError(
+      "INVALID_QUERY",
+      "Invalid search query. Must be a non-empty string.",
+      { query }
     );
   }
 
   options = { ...DefaultOptions, ...options };
 
   if (!ExpectedTypes.includes(options.type!)) {
-    throw new Error(
-      `Invalid type option. Expected one of: ${ExpectedTypes.join(", ")}`
+    throw new YtSearchError(
+      "INVALID_TYPE",
+      `Invalid type option. Expected one of: ${ExpectedTypes.join(", ")}`,
+      { options }
     );
   }
   if (!ExpectedSorts.includes(options.sort!)) {
-    throw new Error(
-      `Invalid sort option. Expected one of: ${ExpectedSorts.join(", ")}`
+    throw new YtSearchError(
+      "INVALID_SORT",
+      `Invalid sort option. Expected one of: ${ExpectedSorts.join(", ")}`,
+      { options }
     );
   }
 
@@ -66,7 +74,11 @@ const fetchResultDataFromYT = async (
     // Parse ytInitialData from the HTML response
     const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
     if (!match) {
-      throw new Error("Failed to parse YouTube initial data.");
+      throw new YtSearchError(
+        "PARSE_ERROR",
+        "Failed to parse YouTube initial data.",
+        { query, html }
+      );
     }
 
     const initialData = JSON.parse(match[1]!);
@@ -102,11 +114,22 @@ const fetchResultDataFromYT = async (
     ) {
       return data[index].itemSectionRenderer.contents as RawSearchResult[];
     } else {
-      throw new Error(`No results were found.`);
+      throw new YtSearchError("NO_RESULTS", `No results were found.`, {
+        query,
+        options,
+      });
     }
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error searching for query '${query}': ${message}`);
+  } catch (error) {
+    if (error instanceof YtSearchError) throw error;
+    throw new YtSearchError(
+      "UNKNOWN",
+      `Unexpected error in fetchResultDataFromYT: ${String(error)}`,
+      {
+        query,
+        options,
+        originalError: error,
+      }
+    );
   }
 };
 
@@ -121,7 +144,7 @@ const fetchResultDataFromYT = async (
  * - `playlistInfo` {unknown} - Playlist metadata (parsed from header).
  * - `videos` {RawSearchResult[]} - List of raw video renderer objects.
  *
- * @throws {Error} If:
+ * @throws {YtSearchError} If:
  * - `playListID` is invalid.
  * - YouTube HTML could not be parsed.
  * - Playlist is invalid or has no videos.
@@ -131,7 +154,11 @@ const fetchPlayListDataFromYT = async (
   playListID: string
 ): Promise<SearchPlaylistType> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
-    throw new Error("Invalid playList ID. It must be a non-empty string.");
+    throw new YtSearchError(
+      "INVALID_PLAYLIST",
+      "Invalid playList ID. It must be a non-empty string.",
+      { playListID }
+    );
   }
 
   const _queryOptions = {
@@ -147,8 +174,10 @@ const fetchPlayListDataFromYT = async (
     // Parse ytInitialData from the HTML response
     const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
     if (!match) {
-      throw new Error(
-        "Failed to parse YouTube initial data Or Invalid playlist."
+      throw new YtSearchError(
+        "PARSE_ERROR",
+        "Failed to parse YouTube initial data Or Invalid playlist.",
+        { playListID, html }
       );
     }
 
@@ -161,7 +190,7 @@ const fetchPlayListDataFromYT = async (
       // Find if any are errors
       const errorAlert = alerts.find((a) => a.type === "ERROR");
       if (errorAlert) {
-        throw new Error(errorAlert.message);
+        throw new YtSearchError("YOUTUBE_ERROR", errorAlert.message);
       }
 
       // Otherwise, log warnings but continue
@@ -196,7 +225,11 @@ const fetchPlayListDataFromYT = async (
     }
 
     if (!playlistData.length) {
-      throw new Error("No videos found in playlist.");
+      throw new YtSearchError(
+        "NO_PLAYLIST_RESULTS",
+        "No videos found in playlist.",
+        { playListID }
+      );
     }
 
     // Filter out continuation tokens (they appear for load-more)
@@ -235,8 +268,15 @@ const fetchPlayListDataFromYT = async (
       videos,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error fetching playlist '${playListID}': ${message}`);
+    if (error instanceof YtSearchError) throw error;
+    throw new YtSearchError(
+      "UNKNOWN",
+      `Unexpected error in fetchPlayListDataFromYT: ${String(error)}`,
+      {
+        playListID,
+        originalError: error,
+      }
+    );
   }
 };
 

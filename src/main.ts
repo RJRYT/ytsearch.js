@@ -1,4 +1,5 @@
 import { fetchResultDataFromYT, fetchPlayListDataFromYT } from "./fetch";
+import { YtSearchError } from "./utils/errors";
 import {
   DefaultOptions,
   ExpectedSorts,
@@ -7,7 +8,7 @@ import {
 } from "./utils/constants";
 import type {
   SearchOptions,
-  ExtractedItem,
+  SearchResult,
   RawSearchResult,
   SearchPlaylistType,
   PlaylistPage,
@@ -31,7 +32,7 @@ import {
  * - `limit` {number} - Maximum number of results to return.
  * Defaults are taken from `DefaultOptions`.
  *
- * @returns {Promise<ExtractedItem[]>}
+ * @returns {Promise<SearchResult[]>}
  * Resolves to an array of extracted and normalized results, depending on `options.type`:
  *
  * - **VideoResult** (`{ type: "video" }`)
@@ -83,7 +84,7 @@ import {
  *   }
  *   ```
  *
- * @throws {Error}
+ * @throws {YtSearchError}
  * - If `query` is not a non-empty string.
  * - If `options.type` is not one of `"video" | "channel" | "playlist"`.
  * - If `options.sort` is not a valid sorting option.
@@ -91,46 +92,67 @@ import {
 const searchYouTube = async (
   query: string,
   options: SearchOptions = DefaultOptions
-): Promise<ExtractedItem[]> => {
+): Promise<SearchResult[]> => {
   if (typeof query !== "string" || query.trim() === "") {
-    throw new Error("Invalid search query. Must be a non-empty string.");
+    throw new YtSearchError(
+      "INVALID_QUERY",
+      "Invalid search query. Must be a non-empty string.",
+      { query }
+    );
   }
 
   options = { ...DefaultOptions, ...options };
 
   if (!ExpectedTypes.includes(options.type!)) {
-    throw new Error(
-      `Invalid type option. Expected one of: ${ExpectedTypes.join(", ")}`
+    throw new YtSearchError(
+      "INVALID_TYPE",
+      `Invalid type option. Expected one of: ${ExpectedTypes.join(", ")}`,
+      { options }
     );
   }
   if (!ExpectedSorts.includes(options.sort!)) {
-    throw new Error(
-      `Invalid sort option. Expected one of: ${ExpectedSorts.join(", ")}`
+    throw new YtSearchError(
+      "INVALID_SORT",
+      `Invalid sort option. Expected one of: ${ExpectedSorts.join(", ")}`,
+      { options }
     );
   }
 
-  const fetchResponse: Record<string, any>[] = await fetchResultDataFromYT(
-    query,
-    options
-  );
+  try {
+    const fetchResponse: Record<string, any>[] = await fetchResultDataFromYT(
+      query,
+      options
+    );
 
-  const responseData = fetchResponse
-    .filter((item) => item.hasOwnProperty(ContentObjectKey[options.type!]))
-    .map((item): ExtractedItem | undefined => {
-      if (options.type === "video")
-        return FormatVedioObject(item.videoRenderer);
+    const responseData = fetchResponse
+      .filter((item) => item.hasOwnProperty(ContentObjectKey[options.type!]))
+      .map((item): SearchResult | undefined => {
+        if (options.type === "video")
+          return FormatVedioObject(item.videoRenderer);
 
-      if (options.type === "channel")
-        return FormatChannelObject(item.channelRenderer);
+        if (options.type === "channel")
+          return FormatChannelObject(item.channelRenderer);
 
-      if (options.type === "playlist")
-        return FormatPlaylistObject(item.lockupViewModel);
+        if (options.type === "playlist")
+          return FormatPlaylistObject(item.lockupViewModel);
 
-      return undefined;
-    })
-    .filter((item): item is ExtractedItem => item !== undefined);
+        return undefined;
+      })
+      .filter((item): item is SearchResult => item !== undefined);
 
-  return responseData.slice(0, options.limit);
+    return responseData.slice(0, options.limit);
+  } catch (error) {
+    if (error instanceof YtSearchError) throw error;
+    throw new YtSearchError(
+      "UNKNOWN",
+      `Unexpected error in searchYouTube: ${String(error)}`,
+      {
+        query,
+        options,
+        originalError: error,
+      }
+    );
+  }
 };
 
 /**
@@ -156,47 +178,63 @@ const searchYouTube = async (
  * - `hasNextPage`: Indicates whether more videos are available.
  * - `nextPage()`: Loads the next page, or returns `null` if no continuation exists.
  *
- * @throws {Error}
+ * @throws {YtSearchError}
  * - If `playListID` is not a non-empty string.
  * - If the playlist fetch fails or YouTube returns an invalid response.
  */
 const getPlaylistItems = async (playListID: string): Promise<PlaylistPage> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
-    throw new Error("Invalid playList ID. It must be a non-empty string.");
+    throw new YtSearchError(
+      "INVALID_PLAYLIST",
+      "Invalid playList ID. It must be a non-empty string.",
+      { playListID }
+    );
   }
 
-  const fetchResponse: SearchPlaylistType = await fetchPlayListDataFromYT(
-    playListID
-  );
+  try {
+    const fetchResponse: SearchPlaylistType = await fetchPlayListDataFromYT(
+      playListID
+    );
 
-  const buildPage = (
-    videos: RawSearchResult[],
-    continuationToken: string | null
-  ): PlaylistPage => {
-    return {
-      playlist: FormatPlayListInfoObject(
-        fetchResponse.playlistInfo,
-        playListID
-      ),
-      videos: videos.map((vid) =>
-        FormatPlaylistVedioObject(vid.playlistVideoRenderer)
-      ),
-      hasNextPage: !!continuationToken,
-      nextPage: async () => {
-        if (!continuationToken) return null;
+    const buildPage = (
+      videos: RawSearchResult[],
+      continuationToken: string | null
+    ): PlaylistPage => {
+      return {
+        playlist: FormatPlayListInfoObject(
+          fetchResponse.playlistInfo,
+          playListID
+        ),
+        videos: videos.map((vid) =>
+          FormatPlaylistVedioObject(vid.playlistVideoRenderer)
+        ),
+        hasNextPage: !!continuationToken,
+        nextPage: async () => {
+          if (!continuationToken) return null;
 
-        const responseData = await fetchPlaylistNextChunk(
-          fetchResponse.apiToken,
-          continuationToken,
-          fetchResponse.clientVersion
-        );
+          const responseData = await fetchPlaylistNextChunk(
+            fetchResponse.apiToken,
+            continuationToken,
+            fetchResponse.clientVersion
+          );
 
-        return buildPage(responseData.videos, responseData.continueToken);
-      },
+          return buildPage(responseData.videos, responseData.continueToken);
+        },
+      };
     };
-  };
 
-  return buildPage(fetchResponse.videos, fetchResponse.continueToken);
+    return buildPage(fetchResponse.videos, fetchResponse.continueToken);
+  } catch (error) {
+    if (error instanceof YtSearchError) throw error;
+    throw new YtSearchError(
+      "UNKNOWN",
+      `Unexpected error in getPlaylistItems: ${String(error)}`,
+      {
+        playListID,
+        originalError: error,
+      }
+    );
+  }
 };
 
 export default searchYouTube;

@@ -110,9 +110,9 @@ export interface PlaylistResult {
 }
 
 /**
- * Extracted item which can be a video, channel, or playlist
+ * Extracted search result which can be a video, channel, or playlist
  */
-export type ExtractedItem = VideoResult | ChannelResult | PlaylistResult;
+export type SearchResult = VideoResult | ChannelResult | PlaylistResult;
 
 /**
  * Playlist info header object from YouTube

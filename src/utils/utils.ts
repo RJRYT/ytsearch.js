@@ -1,3 +1,5 @@
+import { YtSearchError } from "./errors";
+
 /**
  * Converts a time string (e.g., 'mm:ss' or 'hh:mm:ss') to total seconds.
  *
@@ -94,8 +96,10 @@ const getNormalizedQueryFreeUrl = (urlString: string): string => {
     urlObj.search = ""; // Remove query parameters
     return urlObj.toString();
   } catch (error) {
-    // This catch block handles cases like "invalid-domain" that cannot be fixed
-    throw new Error(`Invalid URL provided: ${urlString}`);
+    throw new YtSearchError("UNKNOWN", "Invalid URL provided", {
+      urlString,
+      originalError: error,
+    });
   }
 };
 
