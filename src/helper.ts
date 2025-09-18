@@ -5,6 +5,8 @@ import type {
   RawSearchResult,
   SearchPlaylistType,
   Thumbnail,
+  VideoRawDetails,
+  VideoDetails,
 } from "./types";
 import {
   BaseUrl,
@@ -12,12 +14,15 @@ import {
   ImageBaseUrl,
   PlayListApiUrl,
   PlaylistUrl,
+  UserAgent,
   WatchUrl,
 } from "./utils/constants";
 import { fetchApiData } from "./utils/http";
 import { YtSearchError } from "./utils/errors";
 import {
   findFirstMatchingValue,
+  formatDate,
+  formatDuration,
   getNormalizedQueryFreeUrl,
   shortNumber,
   toSeconds,
@@ -438,8 +443,7 @@ export const fetchPlaylistNextChunk = async (
     {
       headers: {
         "Content-Type": "application/json",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; rv:140.0) Gecko/20100101 Firefox/140.0",
+        "User-Agent": UserAgent,
       },
     }
   );
@@ -478,5 +482,98 @@ export const fetchPlaylistNextChunk = async (
     clientVersion,
     continueToken,
     videos,
+  };
+};
+
+/**
+ * Normalizes raw YouTube video data into a standardized {@link VideoDetails} object.
+ *
+ * This function takes the raw response structures returned by YouTube
+ * (`videoDetails`, `microFormat`, `videoPrimaryInfo`, `videoSecondaryInfo`) and
+ * safely traverses them to extract consistent fields like title, description,
+ * channel info, likes, etc.
+ *
+ * @param videoInfo - Raw video data object ({@link VideoRawDetails}) fetched from YouTube
+ * @param videoID - The YouTube video ID
+ * @returns A fully formatted {@link VideoDetails} object with normalized fields
+ */
+export const FormatVideoObject = (
+  videoInfo: VideoRawDetails,
+  videoID: string
+): VideoDetails => {
+  return {
+    id: videoID,
+    title:
+      videoInfo?.videoPrimaryInfo?.title?.runs?.[0]?.text ??
+      videoInfo?.videoDetails?.title ??
+      videoInfo?.microFormat?.title?.simpleText ??
+      "",
+    description:
+      videoInfo?.videoDetails?.shortDescription ??
+      videoInfo?.microFormat?.description?.simpleText ??
+      "",
+    duration: formatDuration(
+      parseInt(videoInfo?.videoDetails?.lengthSeconds ?? "0")
+    ),
+    views: parseInt(videoInfo?.videoDetails?.viewCount ?? "0"),
+    viewsShort: shortNumber(
+      parseInt(videoInfo?.videoDetails?.viewCount ?? "0")
+    ),
+    uploadDate:
+      formatDate(videoInfo?.microFormat?.uploadDate) ??
+      videoInfo?.videoPrimaryInfo?.dateText?.simpleText ??
+      "",
+    thumbnail: videoInfo?.microFormat?.thumbnail?.thumbnails?.[0] ??
+      videoInfo?.videoDetails?.thumbnail?.thumbnails?.[0] ?? {
+        url: "",
+        width: 0,
+        height: 0,
+      },
+    channel: {
+      id:
+        videoInfo?.videoDetails?.channelId ??
+        videoInfo?.microFormat?.externalChannelId ??
+        videoInfo?.videoSecondaryInfo?.owner?.videoOwnerRenderer
+          ?.navigationEndpoint?.browseEndpoint?.browseId ??
+        "",
+      name:
+        videoInfo?.videoDetails?.author ??
+        videoInfo?.microFormat?.ownerChannelName ??
+        videoInfo?.videoSecondaryInfo?.owner?.videoOwnerRenderer?.title
+          ?.runs?.[0]?.text ??
+        "",
+      url:
+        videoInfo?.microFormat?.ownerProfileUrl ??
+        BaseUrl +
+          (videoInfo?.videoSecondaryInfo?.owner?.videoOwnerRenderer
+            ?.navigationEndpoint?.commandMetadata?.webCommandMetadata?.url ??
+            videoInfo?.videoSecondaryInfo?.owner?.videoOwnerRenderer
+              ?.navigationEndpoint?.browseEndpoint?.canonicalBaseUrl ??
+            ""),
+      avatar:
+        videoInfo?.videoSecondaryInfo?.owner?.videoOwnerRenderer?.thumbnail
+          ?.thumbnails?.[0]?.url ?? "",
+      subscribers:
+        videoInfo?.videoSecondaryInfo?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText?.replace(
+          / subscribers/g,
+          ""
+        ) ?? "",
+      verified: !!findFirstMatchingValue(
+        videoInfo?.videoSecondaryInfo ?? {},
+        /CHECK_CIRCLE_FILLED/
+      ),
+      isArtist: !!findFirstMatchingValue(
+        videoInfo?.videoSecondaryInfo ?? {},
+        /AUDIO_BADGE/
+      ),
+    },
+    likes: parseInt(videoInfo?.microFormat?.likeCount ?? "0"),
+    likesShort: shortNumber(parseInt(videoInfo?.microFormat?.likeCount ?? "0")),
+    isLive: videoInfo?.videoDetails?.isLiveContent ?? false,
+    isPrivate: videoInfo?.videoDetails?.isPrivate ?? false,
+    isUnlisted: videoInfo?.microFormat?.isUnlisted ?? false,
+    category: videoInfo?.microFormat?.category ?? "",
+    watchUrl: videoInfo?.microFormat?.canonicalUrl ?? "",
+    allowRatings: videoInfo?.videoDetails?.allowRatings ?? false,
   };
 };

@@ -14,10 +14,10 @@ Import functions:
 
 ```js
 // ESM
-import { searchYouTube, getPlaylistItems } from "ytsearch.js";
+import { searchYouTube, getPlaylistItems, getVideoDetails } from "ytsearch.js";
 
 // CommonJS
-const { searchYouTube, getPlaylistItems } = require("ytsearch.js");
+const { searchYouTube, getPlaylistItems, getVideoDetails } = require("ytsearch.js");
 ```
 
 Perform a basic search:
@@ -32,6 +32,13 @@ Fetch a playlist with pagination:
 ```js
 const playlist = await getPlaylistItems("PL4QNnZJr8sRPEJPqe7jZnsLPTBu1E3nIY");
 console.log(playlist.playlist.title);
+```
+
+Fetch video details:
+
+```js
+const video = await getVideoDetails("dQw4w9WgXcQ");
+console.log(video.title, video.author.name);
 ```
 
 ## 📌 Available Examples
@@ -76,15 +83,26 @@ console.log(playlist.playlist.title);
   * Access video details for each page
   * Calculate `expectedPages` from playlist video count
 
+### 5️⃣ Get Video Details
+
+* **File:** `examples/video-details.js`
+* **Description:** Demonstrates fetching details of a single video by ID.
+* **Features:**
+
+  * Fetch full video metadata (title, id, duration, view count, author, published date, etc.)
+  * Access thumbnails and watch URL
+
 ## ⚡ Developer Notes
 
-* **searchYouTube** supports `type` (`video`, `channel`, `playlist`) and `sort` options.
+* **searchYouTube** supports `type`, `sort` and `number` options.
 * **getPlaylistItems** provides a developer-friendly pagination API.
+* **getVideoDetails** fetches detailed metadata for a specific video by ID.
 * All functions return **strictly typed** objects:
 
   * `VideoResult`
   * `ChannelResult`
   * `PlaylistResult`
   * `PlaylistPage` (for paginated playlist videos)
+  * `VideoDetails`
 
 Refer to the respective example files for detailed implementation and testing of all features.

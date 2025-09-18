@@ -1,4 +1,8 @@
-import { fetchResultDataFromYT, fetchPlayListDataFromYT } from "./fetch";
+import {
+  fetchResultDataFromYT,
+  fetchPlayListDataFromYT,
+  fetchVideoDataFromYT,
+} from "./fetch";
 import { YtSearchError } from "./utils/errors";
 import {
   DefaultOptions,
@@ -12,6 +16,8 @@ import type {
   RawSearchResult,
   SearchPlaylistType,
   PlaylistPage,
+  VideoRawDetails,
+  VideoDetails,
 } from "./types";
 import {
   FormatChannelObject,
@@ -19,6 +25,7 @@ import {
   FormatPlaylistObject,
   FormatPlaylistVedioObject,
   FormatVedioObject,
+  FormatVideoObject,
   fetchPlaylistNextChunk,
 } from "./helper";
 
@@ -237,11 +244,84 @@ const getPlaylistItems = async (playListID: string): Promise<PlaylistPage> => {
   }
 };
 
+/**
+ * Fetches and formats full video details from YouTube.
+ *
+ * @param videoID - YouTube video ID (must be a non-empty string)
+ * @returns A normalized {@link VideoDetails} object containing
+ *          parsed metadata (title, duration, views, channel info, etc.)
+ *
+ * @throws {YtSearchError} If the video ID is invalid, parsing fails,
+ *         or network errors occur.
+ *
+ * @example
+ * ```ts
+ * const details = await getVideoDetails("dQw4w9WgXcQ");
+ * console.log(details);
+ * // {
+ * //   id: "dQw4w9WgXcQ",
+ * //   title: "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+ * //   description: "The official video for...",
+ * //   duration: "3:33",
+ * //   views: 1694616581,
+ * //   viewsShort: '1.7B',
+ * //   uploadDate: "October 25, 2009",
+ * //   thumbnail: {
+ * //     url: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+ * //     width: 480,
+ * //     height: 360
+ * //   },
+ * //   channel: {
+ * //     id: "UCuAXFkgsw1L7xaCfnd5JJOw",
+ * //     name: "Rick Astley",
+ * //     url: "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+ * //     avatar: "https://yt3.ggpht.com/ytc/avatar.jpg",
+ * //     subscribers: "5.3M",
+ * //     verified: true,
+ * //     isArtist: true
+ * //   },
+ * //   likes: 18549001,
+ * //   likesShort: '18.5M',
+ * //   isLive: false,
+ * //   isPrivate: false,
+ * //   isUnlisted: false,
+ * //   category: "Music",
+ * //   watchUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+ * //   allowRatings: true
+ * // }
+ * ```
+ */
+const getVideoDetails = async (videoID: string): Promise<VideoDetails> => {
+  if (typeof videoID !== "string" || videoID.trim() === "") {
+    throw new YtSearchError(
+      "INVALID_VIDEO",
+      "Invalid video ID. It must be a non-empty string.",
+      { videoID }
+    );
+  }
+
+  try {
+    const fetchResponse: VideoRawDetails = await fetchVideoDataFromYT(videoID);
+    return FormatVideoObject(fetchResponse, videoID);
+  } catch (error) {
+    if (error instanceof YtSearchError) throw error;
+    throw new YtSearchError(
+      "UNKNOWN",
+      `Unexpected error in getVideoDetails: ${String(error)}`,
+      {
+        videoID,
+        originalError: error,
+      }
+    );
+  }
+};
+
 export default searchYouTube;
 
 export {
   searchYouTube,
   getPlaylistItems,
+  getVideoDetails,
   DefaultOptions,
   ExpectedTypes,
   ExpectedSorts,

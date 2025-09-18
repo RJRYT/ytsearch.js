@@ -1,4 +1,9 @@
-import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
+import {
+  searchYouTube,
+  getPlaylistItems,
+  getVideoDetails,
+} from "../dist/main.mjs";
+// import { searchYouTube, getPlaylistItems, getVideoDetails } from "ytsearch.js";
 
 (async function testESM() {
   try {
@@ -29,7 +34,7 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
 
     console.log("\n=== ESM Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
-      "PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo"
+      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G"
     );
     console.log("Playlist Info:", playlist.playlist);
 
@@ -43,6 +48,12 @@ import { searchYouTube, getPlaylistItems } from "../dist/main.mjs";
       page = page.hasNextPage ? await page.nextPage() : null;
       pageNum++;
     } while (page);
+
+    console.log("\n=== ESM Video Details Test ===");
+    const videoDetails = await getVideoDetails("jfKfPfyJRdk");
+    console.log(
+      `${videoDetails.title} | ${videoDetails.viewsShort} Views | ${videoDetails.likesShort} Likes`
+    );
     console.log("All pages fetched successfully.");
   } catch (err) {
     console.error("ESM Test Error:", err);

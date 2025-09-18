@@ -4,6 +4,7 @@ import type {
   RawSearchResult,
   SearchPlaylistType,
   SortType,
+  VideoRawDetails,
 } from "./types";
 import {
   TypeFilters,
@@ -14,6 +15,8 @@ import {
   ContentObjectKey,
   PlaylistUrl,
   SortFilters,
+  WatchUrl,
+  UserAgent,
 } from "./utils/constants";
 import { parseAlerts } from "./helper";
 import { fetchHtmlData } from "./utils/http";
@@ -77,7 +80,7 @@ const fetchResultDataFromYT = async (
       throw new YtSearchError(
         "PARSE_ERROR",
         "Failed to parse YouTube initial data.",
-        { query, html }
+        { query }
       );
     }
 
@@ -177,7 +180,7 @@ const fetchPlayListDataFromYT = async (
       throw new YtSearchError(
         "PARSE_ERROR",
         "Failed to parse YouTube initial data Or Invalid playlist.",
-        { playListID, html }
+        { playListID }
       );
     }
 
@@ -280,4 +283,97 @@ const fetchPlayListDataFromYT = async (
   }
 };
 
-export { fetchResultDataFromYT, fetchPlayListDataFromYT };
+/**
+ * Fetches raw video data from YouTube watch page.
+ *
+ * @param videoID - YouTube video ID
+ * @returns Parsed raw details including videoDetails, microFormat,
+ *          primary info renderer and secondary info renderer
+ * @throws {YtSearchError} When videoID is invalid, parsing fails, or network errors occur
+ */
+const fetchVideoDataFromYT = async (
+  videoID: string
+): Promise<VideoRawDetails> => {
+  if (typeof videoID !== "string" || videoID.trim() === "") {
+    throw new YtSearchError(
+      "INVALID_VIDEO",
+      "Invalid video ID. It must be a non-empty string.",
+      { videoID }
+    );
+  }
+
+  const _queryOptions = {
+    app: "desktop",
+    v: videoID,
+    hl: "en",
+    gl: "US",
+  };
+
+  const _headerOptions = {
+    "user-agent": UserAgent,
+    accept: "text/html",
+    "accept-encoding": "gzip",
+    "accept-language": `${_queryOptions.hl}-${_queryOptions.gl}`,
+  };
+
+  try {
+    const html = await fetchHtmlData(getNormalizedQueryFreeUrl(WatchUrl), {
+      params: _queryOptions,
+      headers: _headerOptions,
+    });
+
+    const _initialData = html.match(/var ytInitialData = ({.*?});<\/script>/s);
+    if (!_initialData) {
+      throw new YtSearchError(
+        "PARSE_ERROR",
+        "Failed to parse YouTube initial data Or Invalid video.",
+        { videoID }
+      );
+    }
+
+    const _initialPlayerData = html.match(
+      /var ytInitialPlayerResponse\s*=\s*(\{.*?\});/s
+    );
+    if (!_initialPlayerData) {
+      throw new YtSearchError(
+        "PARSE_ERROR",
+        "Failed to parse YouTube initial player data Or Invalid video.",
+        { videoID }
+      );
+    }
+
+    const initialData = JSON.parse(_initialData[1]!);
+    const initialPlayerData = JSON.parse(_initialPlayerData[1]!);
+
+    const contentArray =
+      initialData.contents.twoColumnWatchNextResults.results.results.contents ||
+      [];
+    const videoPrimaryInfoRenderer = contentArray.find((c: any) =>
+      c.hasOwnProperty("videoPrimaryInfoRenderer")
+    ).videoPrimaryInfoRenderer;
+    const videoSecondaryInfoRenderer = contentArray.find((c: any) =>
+      c.hasOwnProperty("videoSecondaryInfoRenderer")
+    ).videoSecondaryInfoRenderer;
+    const videoDetails = initialPlayerData.videoDetails;
+    const microFormat = initialPlayerData.microformat.playerMicroformatRenderer;
+
+    return {
+      videoDetails,
+      microFormat,
+      videoPrimaryInfo: videoPrimaryInfoRenderer,
+      videoSecondaryInfo: videoSecondaryInfoRenderer,
+    };
+  } catch (error: unknown) {
+    if (error instanceof YtSearchError) throw error;
+    throw new YtSearchError(
+      "UNKNOWN",
+      `Unexpected error in fetchVideoDataFromYT: ${String(error)}`,
+      {
+        videoID,
+        originalError: error,
+      }
+    );
+  }
+};
+
+export { fetchResultDataFromYT, fetchPlayListDataFromYT, fetchVideoDataFromYT };

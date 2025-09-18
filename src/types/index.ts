@@ -156,3 +156,44 @@ export interface PlaylistPage {
   hasNextPage: boolean;
   nextPage: () => Promise<PlaylistPage | null>;
 }
+
+/**
+ * Parsed and simplified video details (human-friendly)
+ */
+export interface VideoDetails {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  views: number;
+  viewsShort: string;
+  uploadDate: string;
+  thumbnail: Thumbnail;
+  channel: {
+    id: string;
+    name: string;
+    url: string;
+    avatar: string;
+    subscribers: string;
+    verified: boolean;
+    isArtist: boolean;
+  };
+  likes: number;
+  likesShort: string;
+  isLive: boolean;
+  isPrivate: boolean;
+  isUnlisted: boolean;
+  category: string;
+  watchUrl: string;
+  allowRatings: boolean;
+}
+
+/**
+ * Raw video details returned directly from YouTube API response
+ */
+export interface VideoRawDetails {
+  videoDetails: Record<string, any>;
+  microFormat: Record<string, any>;
+  videoPrimaryInfo: Record<string, any>;
+  videoSecondaryInfo: Record<string, any>;
+}

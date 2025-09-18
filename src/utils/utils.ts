@@ -103,9 +103,72 @@ const getNormalizedQueryFreeUrl = (urlString: string): string => {
   }
 };
 
+/**
+ * Converts seconds to a human-readable mm:ss or hh:mm:ss format.
+ *
+ * @param {number} totalSeconds - The duration in seconds.
+ * @returns {string} - The formatted duration string.
+ */
+const formatDuration = (totalSeconds: number): string => {
+  if (isNaN(totalSeconds) || totalSeconds < 0) {
+    return "0:00";
+  }
+
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const formattedMinutes = hours > 0 ? String(minutes).padStart(2, "0") : String(minutes);
+  const formattedSeconds = String(seconds).padStart(2, "0");
+
+  return hours > 0
+    ? `${hours}:${formattedMinutes}:${formattedSeconds}`
+    : `${formattedMinutes}:${formattedSeconds}`;
+}
+
+/**
+ * Converts an ISO 8601 date string into a human-readable format.
+ *
+ * @param {string} isoDate - The ISO 8601 date string (e.g., "2022-07-12T05:12:29-07:00").
+ * @param {Intl.DateTimeFormatOptions} [options] - Optional formatting options for the output.
+ *   Defaults to: { year: "numeric", month: "long", day: "numeric" }
+ * @param {string} [locale="en-US"] - Optional locale string (default: "en-US").
+ *
+ * @returns {string} The formatted date string in human-readable form.
+ *
+ * @example
+ * ```ts
+ * formatDate("2022-07-12T05:12:29-07:00");
+ * // "July 12, 2022"
+ *
+ * formatDate("2022-07-12T05:12:29-07:00", { weekday: "long", year: "numeric", month: "short", day: "numeric" });
+ * // "Tuesday, Jul 12, 2022"
+ * ```
+ */
+const formatDate = (
+  isoDate: string,
+  options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" },
+  locale: string = "en-US"
+): string => {
+  if (!isoDate || typeof isoDate !== "string") {
+    return "";
+  }
+
+  try {
+    const date = new Date(isoDate);
+    if (isNaN(date.getTime())) return "";
+
+    return new Intl.DateTimeFormat(locale, options).format(date);
+  } catch {
+    return "";
+  }
+}
+
 export {
   toSeconds,
   shortNumber,
   findFirstMatchingValue,
   getNormalizedQueryFreeUrl,
+  formatDuration,
+  formatDate,
 };

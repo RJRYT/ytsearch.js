@@ -5,20 +5,20 @@ import { handleAxiosError } from "./errors";
  * Fetches raw HTML data from YouTube using a GET request.
  *
  * @param url - The YouTube page URL to fetch.
- * @param params - Query parameters to include in the request.
+ * @param config - Axios configuration to include in the request.
  * @returns A promise that resolves to the raw HTML response data.
  * @throws {YtSearchError} Throws a standardized error if the request fails
  *         due to network issues, rate limiting, or YouTube being unavailable.
  */
 export async function fetchHtmlData(
   url: string,
-  params: Record<string, any>
+  config: Record<string, any>
 ): Promise<any> {
   try {
-    const res = await axios.get(url, params);
+    const res = await axios.get(url, config);
     return res.data;
   } catch (err) {
-    handleAxiosError(err, { url, params });
+    handleAxiosError(err, { url, config });
   }
 }
 

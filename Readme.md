@@ -191,6 +191,52 @@ interface PlaylistPage {
 
 ---
 
+### `getVideoDetails`
+
+Fetch detailed metadata for a specific video by **video ID**.
+
+```ts
+getVideoDetails(videoID: string): Promise<VideoDetails>;
+```
+
+#### VideoDetails Object
+
+```json
+{
+  "id": "dQw4w9WgXcQ",
+  "title": "Rick Astley - Never Gonna Give You Up (Official Music Video)",
+  "description": "The official video for...",
+  "duration": "3:33",
+  "views": 1694616581,
+  "viewsShort": "1.7B",
+  "uploadDate": "October 25, 2009",
+  "thumbnail": {
+    "url": "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    "width": 480,
+    "height": 360
+  },
+  "channel": {
+    "id": "UCuAXFkgsw1L7xaCfnd5JJOw",
+    "name": "Rick Astley",
+    "url": "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+    "avatar": "https://yt3.ggpht.com/ytc/avatar.jpg",
+    "subscribers": "5.3M",
+    "verified": true,
+    "isArtist": true
+  },
+  "likes": 18549001,
+  "likesShort": "18.5M",
+  "isLive": false,
+  "isPrivate": false,
+  "isUnlisted": false,
+  "category": "Music",
+  "watchUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "allowRatings": true
+}
+```
+
+---
+
 ## 📖 Examples
 
 ### Fetch videos
@@ -239,6 +285,18 @@ while (page.hasNextPage) {
   if (!page) break;
   page.videos.forEach((v) => console.log(v.title));
 }
+```
+
+### get video details by id
+
+```js
+import { getVideoDetails } from "ytsearch.js";
+
+const details = await getVideoDetails("dQw4w9WgXcQ");
+
+console.log(details.title);
+console.log(details.channel.name);
+console.log(details.viewsShort);
 ```
 
 ---
@@ -291,6 +349,7 @@ export type YtSearchErrorCode =
   | "NETWORK_UNAVAILABLE"   // Network error (Axios)
   | "INVALID_PLAYLIST"      // Playlist ID is invalid
   | "NO_PLAYLIST_RESULTS"   // No videos found in playlist
+  | "INVALID_VIDEO"         // Video ID is invalid
   | "UNKNOWN";              // Fallback for unclassified errors
 ```
 

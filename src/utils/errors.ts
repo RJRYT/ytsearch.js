@@ -15,6 +15,7 @@ export type YtSearchErrorCode =
   | "NETWORK_UNAVAILABLE"
   | "INVALID_PLAYLIST"
   | "NO_PLAYLIST_RESULTS"
+  | "INVALID_VIDEO"
   | "UNKNOWN";
 
 /**

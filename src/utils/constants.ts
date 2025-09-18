@@ -5,6 +5,8 @@ export const PlaylistUrl = `${BaseUrl}/playlist?list=` as const;
 export const PlayListApiUrl = `${BaseUrl}/youtubei/v1/browse?key=` as const;
 export const DefaultImageName = "/hqdefault.jpg" as const;
 export const ImageBaseUrl = "https://i.ytimg.com/vi/" as const;
+export const UserAgent =
+  "Mozilla/5.0 (Windows NT 10.0; rv:140.0) Gecko/20100101 Firefox/140.0" as const;
 
 export const TypeFilters = {
   video: "EgIQAQ==",

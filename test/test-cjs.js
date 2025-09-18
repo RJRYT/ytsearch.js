@@ -1,4 +1,9 @@
-const { searchYouTube, getPlaylistItems } = require("../dist/main.js");
+const {
+  searchYouTube,
+  getPlaylistItems,
+  getVideoDetails,
+} = require("../dist/main.js");
+// const { searchYouTube, getPlaylistItems, getVideoDetails } = require("ytsearch.js");
 
 (async function testCJS() {
   try {
@@ -29,7 +34,7 @@ const { searchYouTube, getPlaylistItems } = require("../dist/main.js");
 
     console.log("\n=== CJS Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
-      "PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo"
+      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G"
     );
     console.log("Playlist Info:", playlist.playlist);
 
@@ -43,6 +48,12 @@ const { searchYouTube, getPlaylistItems } = require("../dist/main.js");
       page = page.hasNextPage ? await page.nextPage() : null;
       pageNum++;
     } while (page);
+
+    console.log("\n=== ESM Video Details Test ===");
+    const videoDetails = await getVideoDetails("jfKfPfyJRdk");
+    console.log(
+      `${videoDetails.title} | ${videoDetails.viewsShort} Views | ${videoDetails.likesShort} Likes`
+    );
     console.log("All pages fetched successfully.");
   } catch (err) {
     console.error("CJS Test Error:", err);
