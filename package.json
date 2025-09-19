@@ -20,8 +20,8 @@
     "build": "tsup src/main.ts --format cjs,esm --dts --dts-resolve --out-dir dist --clean --splitting",
     "clean": "rm -rf dist",
     "prepare": "npm run clean && npm run build",
-    "test": "jest",
-    "test:watch": "jest --watch --verbose"
+    "test": "jest --verbose",
+    "test:watch": "jest --watch"
   },
   "keywords": [
     "youtube",

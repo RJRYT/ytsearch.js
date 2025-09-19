@@ -325,4 +325,5 @@ export {
   DefaultOptions,
   ExpectedTypes,
   ExpectedSorts,
+  YtSearchError,
 };

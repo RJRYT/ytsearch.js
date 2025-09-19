@@ -345,6 +345,17 @@ const fetchVideoDataFromYT = async (
     const initialData = JSON.parse(_initialData[1]!);
     const initialPlayerData = JSON.parse(_initialPlayerData[1]!);
 
+    const playability = initialPlayerData.playabilityStatus;
+    if (!playability || playability.status !== "OK") {
+      throw new YtSearchError(
+        "YOUTUBE_ERROR",
+        playability?.reason ||
+          playability?.messages?.[0] ||
+          "Video is not avalable (private, unavailable, or invalid).",
+        { videoID, playabilityStatus: playability }
+      );
+    }
+
     const contentArray =
       initialData.contents.twoColumnWatchNextResults.results.results.contents ||
       [];

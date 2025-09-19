@@ -1,4 +1,4 @@
-const { getVideoDetails } = require("../dist/main.js");
+const { getVideoDetails, YtSearchError } = require("../dist/main.js");
 
 describe("getVideoDetails() API", () => {
   jest.setTimeout(20000); // YouTube calls can take time
@@ -23,5 +23,32 @@ describe("getVideoDetails() API", () => {
     expect(details.title).toMatch(/Never Gonna Give You Up/i);
     expect(details.channel.name).toMatch(/Rick Astley/i);
     expect(details.watchUrl).toBe(`https://www.youtube.com/watch?v=${videoID}`);
+  });
+
+  it("should throw YOUTUBE_ERROR for a private video", async () => {
+    const privateVideoID = "qvO4z0LzW8E"; 
+    await expect(getVideoDetails(privateVideoID)).rejects.toThrow(
+      YtSearchError
+    );
+    await expect(getVideoDetails(privateVideoID)).rejects.toMatchObject({
+      code: "YOUTUBE_ERROR",
+    });
+  });
+
+  it("should throw YOUTUBE_ERROR for an invalid video ID", async () => {
+    const invalidVideoID = "invalid12345";
+    await expect(getVideoDetails(invalidVideoID)).rejects.toThrow(
+      YtSearchError
+    );
+    await expect(getVideoDetails(invalidVideoID)).rejects.toMatchObject({
+      code: "YOUTUBE_ERROR",
+    });
+  });
+
+  it("should throw INVALID_VIDEO for an empty video ID", async () => {
+    await expect(getVideoDetails("")).rejects.toThrow(YtSearchError);
+    await expect(getVideoDetails("")).rejects.toMatchObject({
+      code: "INVALID_VIDEO",
+    });
   });
 });
