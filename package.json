@@ -23,6 +23,13 @@
     "test": "jest --verbose",
     "test:watch": "jest --watch"
   },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "funding": {
+    "type": "patreon",
+    "url": "https://www.patreon.com/rjryt"
+  },
   "keywords": [
     "youtube",
     "youtube api",
@@ -50,7 +57,7 @@
     "type": "git",
     "url": "git+https://github.com/RJRYT/ytsearch.js.git"
   },
-  "author": "RJRYT <rjryt@outlook.com> (https://rjryt.github.io/)",
+  "author": "RJRYT <robinjratr@gmail.com> (https://rjryt.github.io/)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/RJRYT/ytsearch.js/issues"
