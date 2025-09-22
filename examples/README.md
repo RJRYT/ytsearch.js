@@ -92,9 +92,31 @@ console.log(video.title, video.author.name);
   * Fetch full video metadata (title, id, duration, view count, author, published date, etc.)
   * Access thumbnails and watch URL
 
+### 6️⃣ Search Movies
+
+* **File:** `examples/search-movie.js`
+* **Description:** Demonstrates searching for YouTube movies.
+* **Features:**
+
+  * Fetch movie details (title, id, description, duration, author)
+  * Limit results
+  * Access watch URL
+
+### 7️⃣ Search Live Streams
+
+* **File:** `examples/search-live.js`
+* **Description:** Demonstrates searching for live streams.
+* **Features:**
+
+  * Fetch live stream details (title, id, author, concurrent viewers, isLive)
+  * Limit results
+  * Access watch URL
+
+---
+
 ## ⚡ Developer Notes
 
-* **searchYouTube** supports `type`, `sort` and `number` options.
+* **searchYouTube** supports `type`, `sort` and `limit` options.
 * **getPlaylistItems** provides a developer-friendly pagination API.
 * **getVideoDetails** fetches detailed metadata for a specific video by ID.
 * All functions return **strictly typed** objects:

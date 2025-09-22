@@ -34,62 +34,13 @@ import {
  *
  * @param query - The search query string (e.g. `"JavaScript tutorial"`).
  * @param options - Optional search options:
- * - `type` {"video" | "channel" | "playlist"} - The type of content to search for.
+ * - `type` {"video" | "channel" | "playlist" | "movie" | "live"} - The type of content to search for.
  * - `sort` {string} - Sorting option (must be one of `ExpectedSorts`).
  * - `limit` {number} - Maximum number of results to return.
  * Defaults are taken from `DefaultOptions`.
  *
  * @returns {Promise<SearchResult[]>}
  * Resolves to an array of extracted and normalized results, depending on `options.type`:
- *
- * - **VideoResult** (`{ type: "video" }`)
- *   ```ts
- *   {
- *     type: "video";
- *     id: string;
- *     title: string;
- *     image: string;
- *     thumbnail: Thumbnail;
- *     viewCount: number;
- *     shortViewCount: string;
- *     duration: string;
- *     seconds: number;
- *     author: Author | null;
- *     watchUrl: string;
- *     publishedAt: string;
- *   }
- *   ```
- *
- * - **ChannelResult** (`{ type: "channel" }`)
- *   ```ts
- *   {
- *     type: "channel";
- *     id: string;
- *     title: string;
- *     image: string;
- *     thumbnail: Thumbnail;
- *     description: string;
- *     subscriberCount: string;
- *     url: string;
- *     verified: boolean;
- *     isArtist: boolean;
- *   }
- *   ```
- *
- * - **PlaylistResult** (`{ type: "playlist" }`)
- *   ```ts
- *   {
- *     type: "playlist";
- *     contentType: string;
- *     id: string;
- *     title: string;
- *     image: string;
- *     thumbnail: Thumbnail;
- *     videoCount: number;
- *     author: Author | null;
- *     url: string;
- *   }
- *   ```
  *
  * @throws {YtSearchError}
  * - If `query` is not a non-empty string.
@@ -134,7 +85,11 @@ const searchYouTube = async (
     const responseData = fetchResponse
       .filter((item) => item.hasOwnProperty(ContentObjectKey[options.type!]))
       .map((item): SearchResult | undefined => {
-        if (options.type === "video")
+        if (
+          options.type === "video" ||
+          options.type === "movie" ||
+          options.type === "live"
+        )
           return FormatVedioObject(item.videoRenderer);
 
         if (options.type === "channel")

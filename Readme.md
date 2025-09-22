@@ -9,7 +9,7 @@
 [![Run Jest Tests][github-actions-test-image]][github-actions-test-url]
 [![Node.js Package][github-actions-npm-publish-image]][github-actions-npm-publish-url]
 
-> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube **videos, channels, and playlists** without using the official API. Includes **playlist pagination support** with a clean developer-friendly API.
+> 🔎 A simple and lightweight **YouTube search wrapper for Node.js**. Fetch YouTube **videos, channels, playlists, movies, and live streams** without using the official API. Includes **playlist pagination support** with a clean developer-friendly API.
 
 ---
 
@@ -59,7 +59,7 @@ searchYouTube(query: string, options?: SearchOptions): Promise<SearchResult[]>;
 
 ```ts
 interface SearchOptions {
-  type?: "video" | "channel" | "playlist";
+  type?: "video" | "channel" | "playlist" | "movie" | "live";
   sort?: "relevance" | "upload_date" | "view_count" | "rating";
   limit?: number;
 }
@@ -67,7 +67,7 @@ interface SearchOptions {
 
 #### Return Types
 
-##### Video Object
+##### Video Object | Movie Object | Live Object
 
 ```json
 {
@@ -249,6 +249,18 @@ const results = await searchYouTube("lofi hip hop", { type: "video", limit: 3 })
 
 ```js
 const channels = await searchYouTube("lofi", { type: "channel", limit: 2 });
+```
+
+### Fetch movies
+
+```js
+const movies = await searchYouTube("Marvel", { type: "movie", limit: 2 });
+```
+
+### Fetch live streams
+
+```js
+const lives = await searchYouTube("lofi live", { type: "live", limit: 1 });
 ```
 
 ### Fetch playlists

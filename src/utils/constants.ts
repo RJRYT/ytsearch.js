@@ -9,12 +9,21 @@ export const UserAgent =
   "Mozilla/5.0 (Windows NT 10.0; rv:140.0) Gecko/20100101 Firefox/140.0" as const;
 
 export const TypeFilters = {
+  // any: "CAA=",
   video: "EgIQAQ==",
   channel: "EgIQAg==",
   playlist: "EgIQAw==",
+  movie: "EgIQBA==",
+  live: "EgJAAQ==",
 } as const;
 
 export const SortFilters = {
+  // any: {
+  //   relevance: "CAASAhAB",
+  //   upload_date: "CAISAhAB",
+  //   view_count: "CAMSAhAB",
+  //   rating: "CAESAhAB",
+  // },
   video: {
     relevance: "CAASAhAB",
     upload_date: "CAISAhAB",
@@ -33,21 +42,35 @@ export const SortFilters = {
     view_count: "CAMSAhAD",
     rating: "CAESAhAD",
   },
+  movie: {
+    relevance: "CAASAhAE",
+    upload_date: "CAISAhAE",
+    view_count: "CAMSAhAE",
+    rating: "CAESAhAE",
+  },
+  live: {
+    relevance: "CAASBBABQAE=",
+    upload_date: "CAISAkAB",
+    view_count: "CAMSAkAB",
+    rating: "CAESAkAB",
+  },
 } as const;
 
 export const ContentObjectKey = {
   video: "videoRenderer",
   channel: "channelRenderer",
   playlist: "lockupViewModel",
+  movie: "videoRenderer",
+  live: "videoRenderer",
 } as const;
 
 export const DefaultOptions = {
-  type: "video", // 'video', 'channel', 'playlist'
+  type: "video", // 'video', 'channel', 'playlist', 'movie', 'live'
   sort: "relevance", // 'relevance', 'upload_date', 'view_count', 'rating'
   limit: 20, // number of results to return
 } as const;
 
-export const ExpectedTypes = ["video", "channel", "playlist"] as const;
+export const ExpectedTypes = ["video", "channel", "playlist", "movie", "live"] as const;
 export const ExpectedSorts = [
   "relevance",
   "upload_date",
