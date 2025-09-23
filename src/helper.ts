@@ -46,7 +46,7 @@ export const FormatVedioObject = (
 
   const viewCount =
     parseInt(
-      (videoRenderer.viewCountText?.simpleText || "0").replace(/[^0-9]/g, "")
+      (videoRenderer.viewCountText?.simpleText || videoRenderer.viewCountText?.runs?.[0]?.text || "0").replace(/[^0-9]/g, "")
     ) || 0;
   const shortViewCount = shortNumber(viewCount);
 
@@ -61,6 +61,14 @@ export const FormatVedioObject = (
   const isVerified = !!(
     videoRenderer.ownerBadges &&
     JSON.stringify(videoRenderer.ownerBadges).includes("VERIFIED")
+  );
+  const isArtist = !!(
+    videoRenderer.ownerBadges &&
+    JSON.stringify(videoRenderer.ownerBadges).includes("ARTIST")
+  );
+  const isLive = !!(
+    videoRenderer.badges &&
+    JSON.stringify(videoRenderer.badges).includes("LIVE_NOW")
   );
 
   const publishedAt = videoRenderer.publishedTimeText?.simpleText || "";
@@ -82,10 +90,12 @@ export const FormatVedioObject = (
           name: author.text,
           url: BaseUrl + authorUrl,
           verified: isVerified,
+          isArtist,
         }
       : null,
     watchUrl,
     publishedAt,
+    isLive,
   };
 };
 

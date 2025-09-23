@@ -76,6 +76,7 @@ export interface VideoResult {
   author: Author | null;
   watchUrl: string;
   publishedAt: string;
+  isLive: boolean;
 }
 
 /**
