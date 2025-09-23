@@ -83,10 +83,12 @@ interface SearchOptions {
   "author": {
     "name": "Rick Astley",
     "url": "https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
-    "verified": true
+    "verified": true,
+    "isArtist": false,
   },
   "watchUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  "publishedAt": "15 years ago"
+  "publishedAt": "15 years ago",
+  "isLive": false,
 }
 ```
 
