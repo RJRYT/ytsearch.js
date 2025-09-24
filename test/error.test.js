@@ -12,9 +12,8 @@ describe("Edge Cases / Error Handling", () => {
   it("should handle missing video author gracefully", async () => {
     const results = await searchYouTube("Rick Astley", {
       type: "video",
-      limit: 1,
     });
-    const video = results.find((v) => v.type === "video");
+    const video = results.videos.find((v) => v.type === "video");
     expect(video.author).not.toBeUndefined();
   });
 });
