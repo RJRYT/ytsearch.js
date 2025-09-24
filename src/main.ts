@@ -8,7 +8,6 @@ import {
   DefaultOptions,
   ExpectedSorts,
   ExpectedTypes,
-  ContentObjectKey,
 } from "./utils/constants";
 import type {
   SearchOptions,
