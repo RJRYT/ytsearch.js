@@ -1,10 +1,11 @@
 import type {
   SearchOptions,
   SearchType,
-  RawSearchResult,
-  SearchPlaylistType,
+  RawResult,
+  RawPlaylistResult,
   SortType,
-  VideoRawDetails,
+  RawVideoDetails,
+  RawSearchResult,
 } from "./types";
 import {
   TypeFilters,
@@ -34,7 +35,7 @@ import { YtSearchError } from "./utils/errors";
 const fetchResultDataFromYT = async (
   query: string,
   options: SearchOptions = DefaultOptions
-): Promise<RawSearchResult[]> => {
+): Promise<RawSearchResult> => {
   if (typeof query !== "string" || query.trim() === "") {
     throw new YtSearchError(
       "INVALID_QUERY",
@@ -115,7 +116,37 @@ const fetchResultDataFromYT = async (
       typeof data[index] === "object" &&
       data[index].hasOwnProperty("itemSectionRenderer")
     ) {
-      return data[index].itemSectionRenderer.contents as RawSearchResult[];
+      let apiToken =
+        html.split('INNERTUBE_API_KEY":"')[1]?.split('"')[0] ??
+        html.split('innertubeApiKey":"')[1]?.split('"')[0];
+
+      let clientVersion =
+        html.split('"INNERTUBE_CLIENT_VERSION":"')[1]?.split('"')[0] ??
+        html.split('"clientVersion":"')[1]?.split('"')[0] ??
+        "2.20250911.00.00";
+
+      const result: RawResult[] = data[index].itemSectionRenderer.contents;
+      const ContinueObject: RawResult = data.filter((c:any) =>
+        c.hasOwnProperty("continuationItemRenderer")
+      );
+      let continueToken: string | null = null;
+      if (ContinueObject.length > 0) {
+        continueToken =
+          ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint
+            ?.continuationCommand?.token ??
+          ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
+            (c: any) => c.hasOwnProperty("continuationCommand")
+          )?.continuationCommand?.token ??
+          null;
+      }
+      
+      return {
+        apiToken,
+        clientVersion,
+        continueToken,
+        result,
+        estimatedResults: parseInt(initialData?.estimatedResults || "0"),
+      };
     } else {
       throw new YtSearchError("NO_RESULTS", `No results were found.`, {
         query,
@@ -140,12 +171,12 @@ const fetchResultDataFromYT = async (
  * Fetches playlist metadata and the first page of videos from YouTube.
  *
  * @param playListID - The playlist ID (e.g. `"PLBCF2DAC6FFB574DE"`).
- * @returns {Promise<SearchPlaylistType>} Object containing:
+ * @returns {Promise<RawPlaylistResult>} Object containing:
  * - `apiToken` {string} - Extracted YouTube API token.
  * - `clientVersion` {string} - YouTube client version (used in API requests).
  * - `continueToken` {string | null} - Token for the next page of videos (if any).
  * - `playlistInfo` {unknown} - Playlist metadata (parsed from header).
- * - `videos` {RawSearchResult[]} - List of raw video renderer objects.
+ * - `videos` {RawResult[]} - List of raw video renderer objects.
  *
  * @throws {YtSearchError} If:
  * - `playListID` is invalid.
@@ -155,7 +186,7 @@ const fetchResultDataFromYT = async (
  */
 const fetchPlayListDataFromYT = async (
   playListID: string
-): Promise<SearchPlaylistType> => {
+): Promise<RawPlaylistResult> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
     throw new YtSearchError(
       "INVALID_PLAYLIST",
@@ -236,10 +267,10 @@ const fetchPlayListDataFromYT = async (
     }
 
     // Filter out continuation tokens (they appear for load-more)
-    const videos: RawSearchResult[] = playlistData.filter((c) =>
+    const videos: RawResult[] = playlistData.filter((c) =>
       c.hasOwnProperty("playlistVideoRenderer")
     );
-    const ContinueObject = playlistData.filter((c) =>
+    const ContinueObject: RawResult = playlistData.filter((c) =>
       c.hasOwnProperty("continuationItemRenderer")
     );
 
@@ -293,7 +324,7 @@ const fetchPlayListDataFromYT = async (
  */
 const fetchVideoDataFromYT = async (
   videoID: string
-): Promise<VideoRawDetails> => {
+): Promise<RawVideoDetails> => {
   if (typeof videoID !== "string" || videoID.trim() === "") {
     throw new YtSearchError(
       "INVALID_VIDEO",

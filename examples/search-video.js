@@ -7,5 +7,5 @@ import { searchYouTube } from "ytsearch.js";
     sort: "view_count",
     limit: 5,
   });
-  results.forEach((v, i) => console.log(i + 1, v.title, v.watchUrl));
+  results.forEach((v, i) => console.log(i + 1, v.title, v.url));
 })();

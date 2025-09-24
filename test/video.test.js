@@ -17,12 +17,12 @@ describe("getVideoDetails() API", () => {
     expect(details).toHaveProperty("thumbnail.url");
     expect(details).toHaveProperty("channel.id");
     expect(details).toHaveProperty("channel.name");
-    expect(details).toHaveProperty("watchUrl");
+    expect(details).toHaveProperty("url");
 
     // A few expectations on actual content (loosely matched)
     expect(details.title).toMatch(/Never Gonna Give You Up/i);
     expect(details.channel.name).toMatch(/Rick Astley/i);
-    expect(details.watchUrl).toBe(`https://www.youtube.com/watch?v=${videoID}`);
+    expect(details.url).toBe(`https://www.youtube.com/watch?v=${videoID}`);
   });
 
   it("should throw YOUTUBE_ERROR for a private video", async () => {

@@ -7,6 +7,7 @@ export type YtSearchErrorCode =
   | "INVALID_QUERY"
   | "INVALID_TYPE"
   | "INVALID_SORT"
+  | "INVALID_LIMIT"
   | "PARSE_ERROR"
   | "NO_RESULTS"
   | "RATE_LIMIT"

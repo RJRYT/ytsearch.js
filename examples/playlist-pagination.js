@@ -10,7 +10,7 @@ import { getPlaylistItems } from "ytsearch.js";
   do {
     console.log(`\n--- Page ${pageNum} Videos ---`);
     page.videos.forEach((v) =>
-      console.log(`${v.index}. ${v.title} (${v.watchUrl})`)
+      console.log(`${v.index}. ${v.title} (${v.url})`)
     );
     page = page.hasNextPage ? await page.nextPage() : null;
     pageNum++;

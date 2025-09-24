@@ -2,17 +2,22 @@ import type {
   SearchResult,
   PlaylistInfo,
   PlaylistVideo,
-  RawSearchResult,
-  SearchPlaylistType,
+  RawResult,
+  RawPlaylistResult,
   Thumbnail,
-  VideoRawDetails,
-  VideoDetails,
+  RawVideoDetails,
+  VideoDetailsResult,
+  VideoResult,
+  ChannelResult,
+  PlaylistResult,
+  RawSearchResult,
 } from "./types";
 import {
   BaseUrl,
   DefaultImageName,
   ImageBaseUrl,
   PlayListApiUrl,
+  SearchApiUrl,
   PlaylistUrl,
   UserAgent,
   WatchUrl,
@@ -33,9 +38,7 @@ import {
  * @param videoRenderer - The videoRenderer object from YouTube search results.
  * @returns {SearchResult | undefined} The formatted video item or undefined if invalid.
  */
-export const FormatVedioObject = (
-  videoRenderer: any
-): SearchResult | undefined => {
+export const FormatVedioObject = (videoRenderer: RawResult): VideoResult => {
   const id = videoRenderer.videoId;
   const title = videoRenderer.title.runs[0].text;
   const thumbnail: Thumbnail = {
@@ -46,7 +49,11 @@ export const FormatVedioObject = (
 
   const viewCount =
     parseInt(
-      (videoRenderer.viewCountText?.simpleText || videoRenderer.viewCountText?.runs?.[0]?.text || "0").replace(/[^0-9]/g, "")
+      (
+        videoRenderer.viewCountText?.simpleText ||
+        videoRenderer.viewCountText?.runs?.[0]?.text ||
+        "0"
+      ).replace(/[^0-9]/g, "")
     ) || 0;
   const shortViewCount = shortNumber(viewCount);
 
@@ -72,7 +79,7 @@ export const FormatVedioObject = (
   );
 
   const publishedAt = videoRenderer.publishedTimeText?.simpleText || "";
-  const watchUrl = WatchUrl + id;
+  const url = WatchUrl + id;
   const image = getNormalizedQueryFreeUrl(ImageBaseUrl + id + DefaultImageName);
 
   return {
@@ -93,7 +100,7 @@ export const FormatVedioObject = (
           isArtist,
         }
       : null,
-    watchUrl,
+    url,
     publishedAt,
     isLive,
   };
@@ -105,8 +112,8 @@ export const FormatVedioObject = (
  * @returns {SearchResult | undefined} The formatted channel item or undefined if invalid.
  */
 export const FormatChannelObject = (
-  channelRenderer: any
-): SearchResult | undefined => {
+  channelRenderer: RawResult
+): ChannelResult => {
   const id = channelRenderer.channelId;
   const title = channelRenderer.title.simpleText;
   const thumbnail: Thumbnail = {
@@ -157,8 +164,8 @@ export const FormatChannelObject = (
  * @returns {SearchResult | undefined} The formatted playlist item or undefined if invalid.
  */
 export const FormatPlaylistObject = (
-  playlistRenderer: any
-): SearchResult | undefined => {
+  playlistRenderer: RawResult
+): PlaylistResult => {
   const id = playlistRenderer.contentId;
   const title = playlistRenderer.metadata.lockupMetadataViewModel.title.content;
 
@@ -315,7 +322,7 @@ export const FormatPlaylistVedioObject = (
 
   const publishedAt = videoRenderer.videoInfo?.runs[2]?.text ?? "";
   const playlistId = videoRenderer.navigationEndpoint.watchEndpoint.playlistId;
-  const watchUrl =
+  const url =
     BaseUrl +
       (videoRenderer.navigationEndpoint?.commandMetadata?.webCommandMetadata
         ?.url ?? `/watch?v=${id}${playlistId ? `&list=${playlistId}` : ""}`) ||
@@ -338,7 +345,7 @@ export const FormatPlaylistVedioObject = (
           url: BaseUrl + authorUrl,
         }
       : null,
-    watchUrl,
+    url,
     publishedAt,
   } as PlaylistVideo;
 };
@@ -403,6 +410,7 @@ export const FormatPlayListInfoObject = (
           ?.avatarStack?.avatarStackViewModel?.avatars?.[0]?.avatarViewModel
           ?.image?.sources?.[0]?.url ?? "",
     },
+    url: PlaylistUrl + playListID,
     videoCount: videoCountStr,
     viewsCount:
       playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[2]?.text?.content?.replace(
@@ -421,11 +429,11 @@ export const FormatPlayListInfoObject = (
  * @param {string | null} continueToken - Token for fetching the next page of results.
  * @param {string} clientVersion - YouTube client version.
  *
- * @returns {Promise<SearchPlaylistType>} Object containing:
+ * @returns {Promise<RawPlaylistResult>} Object containing:
  * - `apiToken` {string} - Same API token passed in.
  * - `clientVersion` {string} - Same client version passed in.
  * - `continueToken` {string | null} - Token for the next page (if any).
- * - `videos` {RawSearchResult[]} - Raw video renderer objects.
+ * - `videos` {RawResult[]} - Raw video renderer objects.
  *
  * @throws {YtSearchError} When no videos are found in the continuation response.
  */
@@ -433,7 +441,7 @@ export const fetchPlaylistNextChunk = async (
   apiToken: string,
   continueToken: string | null,
   clientVersion: string
-): Promise<SearchPlaylistType> => {
+): Promise<RawPlaylistResult> => {
   const initialData = await fetchApiData(
     PlayListApiUrl + apiToken,
     {
@@ -469,7 +477,7 @@ export const fetchPlaylistNextChunk = async (
     );
   }
 
-  const videos: RawSearchResult[] = playlistData.filter((c) =>
+  const videos: RawResult[] = playlistData.filter((c) =>
     c.hasOwnProperty("playlistVideoRenderer")
   );
 
@@ -495,22 +503,82 @@ export const fetchPlaylistNextChunk = async (
   };
 };
 
+export const fetchSearchNextChunk = async (
+  apiToken: string,
+  continueToken: string | null,
+  clientVersion: string
+): Promise<RawSearchResult> => {
+  const initialData = await fetchApiData(
+    SearchApiUrl + apiToken,
+    {
+      continuation: continueToken,
+      context: {
+        client: {
+          utcOffsetMinutes: 0,
+          gl: "US",
+          hl: "en",
+          clientName: "WEB",
+          clientVersion: clientVersion,
+        },
+        user: {},
+        request: {},
+      },
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": UserAgent,
+      },
+    }
+  );
+
+  const searchData: any[] =
+    initialData?.onResponseReceivedCommands?.[0]?.appendContinuationItemsAction
+      ?.continuationItems || [];
+
+  const ContinueObject = searchData.filter((c) =>
+    c.hasOwnProperty("continuationItemRenderer")
+  );
+
+  if (ContinueObject) {
+    continueToken =
+      ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint
+        ?.continuationCommand?.token ||
+      ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
+        (c: any) => c.hasOwnProperty("continuationCommand")
+      )?.continuationCommand?.token ||
+      null;
+  } else continueToken = null;
+
+  const ResultObject = searchData.filter((c) =>
+    c.hasOwnProperty("itemSectionRenderer")
+  );
+
+  return {
+    apiToken,
+    clientVersion,
+    continueToken,
+    result: ResultObject?.[0]?.itemSectionRenderer?.contents || [],
+    estimatedResults: parseInt(initialData?.estimatedResults || "0"),
+  };
+};
+
 /**
- * Normalizes raw YouTube video data into a standardized {@link VideoDetails} object.
+ * Normalizes raw YouTube video data into a standardized {@link VideoDetailsResult} object.
  *
  * This function takes the raw response structures returned by YouTube
  * (`videoDetails`, `microFormat`, `videoPrimaryInfo`, `videoSecondaryInfo`) and
  * safely traverses them to extract consistent fields like title, description,
  * channel info, likes, etc.
  *
- * @param videoInfo - Raw video data object ({@link VideoRawDetails}) fetched from YouTube
+ * @param videoInfo - Raw video data object ({@link RawVideoDetails}) fetched from YouTube
  * @param videoID - The YouTube video ID
- * @returns A fully formatted {@link VideoDetails} object with normalized fields
+ * @returns A fully formatted {@link VideoDetailsResult} object with normalized fields
  */
 export const FormatVideoObject = (
-  videoInfo: VideoRawDetails,
+  videoInfo: RawVideoDetails,
   videoID: string
-): VideoDetails => {
+): VideoDetailsResult => {
   return {
     id: videoID,
     title:
@@ -533,6 +601,7 @@ export const FormatVideoObject = (
       formatDate(videoInfo?.microFormat?.uploadDate) ??
       videoInfo?.videoPrimaryInfo?.dateText?.simpleText ??
       "",
+    image: videoInfo?.microFormat?.thumbnail?.thumbnails?.[0]?.url ?? "",
     thumbnail: videoInfo?.microFormat?.thumbnail?.thumbnails?.[0] ??
       videoInfo?.videoDetails?.thumbnail?.thumbnails?.[0] ?? {
         url: "",
@@ -583,7 +652,7 @@ export const FormatVideoObject = (
     isPrivate: videoInfo?.videoDetails?.isPrivate ?? false,
     isUnlisted: videoInfo?.microFormat?.isUnlisted ?? false,
     category: videoInfo?.microFormat?.category ?? "",
-    watchUrl: videoInfo?.microFormat?.canonicalUrl ?? "",
+    url: videoInfo?.microFormat?.canonicalUrl ?? "",
     allowRatings: videoInfo?.videoDetails?.allowRatings ?? false,
   };
 };

@@ -124,7 +124,7 @@ console.log(video.title, video.author.name);
   * `VideoResult`
   * `ChannelResult`
   * `PlaylistResult`
-  * `PlaylistPage` (for paginated playlist videos)
-  * `VideoDetails`
+  * `PlaylistDetailsResult`
+  * `VideoDetailsResult`
 
 Refer to the respective example files for detailed implementation and testing of all features.

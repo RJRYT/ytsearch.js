@@ -86,7 +86,7 @@ interface SearchOptions {
     "verified": true,
     "isArtist": false,
   },
-  "watchUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   "publishedAt": "15 years ago",
   "isLive": false,
 }
@@ -137,17 +137,17 @@ interface SearchOptions {
 Fetch a playlist with **videos and pagination support**.
 
 ```ts
-getPlaylistItems(playlistId: string): Promise<PlaylistPage>;
+getPlaylistItems(playlistId: string): Promise<PlaylistDetailsResult>;
 ```
 
-#### PlaylistPage Object
+#### PlaylistDetailsResult Object
 
 ```ts
-interface PlaylistPage {
+interface PlaylistDetailsResult {
   playlist: PlaylistInfo;
   videos: PlaylistVideo[];
   hasNextPage: boolean;
-  nextPage: () => Promise<PlaylistPage | null>;
+  nextPage: () => Promise<PlaylistDetailsResult | null>;
 }
 ```
 
@@ -186,7 +186,7 @@ interface PlaylistPage {
   "duration": "2:14",
   "seconds": 134,
   "author": { "name": "LoFi Artist", "url": "https://www.youtube.com/c/LoFiArtist" },
-  "watchUrl": "https://www.youtube.com/watch?v=abc123",
+  "url": "https://www.youtube.com/watch?v=abc123",
   "publishedAt": "2 years ago"
 }
 ```
@@ -198,10 +198,10 @@ interface PlaylistPage {
 Fetch detailed metadata for a specific video by **video ID**.
 
 ```ts
-getVideoDetails(videoID: string): Promise<VideoDetails>;
+getVideoDetails(videoID: string): Promise<VideoDetailsResult>;
 ```
 
-#### VideoDetails Object
+#### VideoDetailsResult Object
 
 ```json
 {
@@ -232,7 +232,7 @@ getVideoDetails(videoID: string): Promise<VideoDetails>;
   "isPrivate": false,
   "isUnlisted": false,
   "category": "Music",
-  "watchUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   "allowRatings": true
 }
 ```
@@ -355,6 +355,7 @@ export type YtSearchErrorCode =
   | "INVALID_QUERY"         // Search query is empty or invalid
   | "INVALID_TYPE"          // Invalid search type option
   | "INVALID_SORT"          // Invalid sort option
+  | "INVALID_LIMIT"         // Invalid Limit Range
   | "PARSE_ERROR"           // Failed to parse YouTube data
   | "NO_RESULTS"            // No results found for the query
   | "RATE_LIMIT"            // YouTube rate-limited the request

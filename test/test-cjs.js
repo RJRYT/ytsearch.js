@@ -14,7 +14,7 @@ const {
       sort: "view_count",
       limit: 3,
     });
-    videos.forEach((v, i) => console.log(i + 1, v.title, v.watchUrl));
+    videos.forEach((v, i) => console.log(i + 1, v.title, v.url));
 
     console.log("\n=== CJS Channel Search Test ===");
     const channels = await searchYouTube(query, {
@@ -43,7 +43,7 @@ const {
     do {
       console.log(`\n--- Page ${pageNum} Videos ---`);
       page.videos.forEach((v) =>
-        console.log(`${v.index}. ${v.title} (${v.watchUrl})`)
+        console.log(`${v.index}. ${v.title} (${v.url})`)
       );
       page = page.hasNextPage ? await page.nextPage() : null;
       pageNum++;
