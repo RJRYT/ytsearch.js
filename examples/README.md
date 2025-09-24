@@ -23,7 +23,7 @@ const { searchYouTube, getPlaylistItems, getVideoDetails } = require("ytsearch.j
 Perform a basic search:
 
 ```js
-const results = await searchYouTube("lofi hip hop", { type: "video", limit: 5 });
+const results = await searchYouTube("lofi hip hop", { type: "video", limit: 10 });
 results.forEach(r => console.log(r.title, r.type));
 ```
 

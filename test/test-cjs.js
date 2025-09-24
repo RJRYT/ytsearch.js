@@ -9,12 +9,29 @@ const {
   try {
     const query = "lofi hip hop";
     console.log("=== CJS Video Search Test ===");
-    const videos = await searchYouTube(query, {
+    const searchRes = await searchYouTube(query, {
       type: "video",
       sort: "view_count",
-      limit: 3,
+      limit: 30,
     });
-    videos.forEach((v, i) => console.log(i + 1, v.title, v.url));
+    console.log("Metadata:", searchRes.metadata);
+    console.log("Videos:", searchRes.videos.length);
+    console.log("Channels:", searchRes.channels.length);
+    console.log("Playlists:", searchRes.playlists.length);
+
+    // Show first 3 videos
+    searchRes.videos
+      .slice(0, 3)
+      .forEach((v, i) => console.log(`${i + 1}. ${v.title} (${v.url})`));
+
+    // Paginate
+    if (searchRes.metadata.hasNextPage) {
+      const nextPage = await searchRes.nextPage();
+      console.log("\n=== Next Page ===");
+      console.log("Videos:", nextPage.videos.length);
+      console.log("Channels:", nextPage.channels.length);
+      console.log("Playlists:", nextPage.playlists.length);
+    }
 
     console.log("\n=== CJS Channel Search Test ===");
     const channels = await searchYouTube(query, {

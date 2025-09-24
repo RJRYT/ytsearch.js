@@ -8,7 +8,7 @@ import {
 (async function testESM() {
   try {
     const query = "lofi hip hop";
-    console.log("=== ESM Video Search Test ===");
+   /* console.log("=== ESM Video Search Test ===");
     const searchRes = await searchYouTube(query, {
       type: "any",
       limit: 43,
@@ -48,10 +48,10 @@ import {
       limit: 2,
     });
     playlists.forEach((p, i) => console.log(i + 1, p.title, p.url));
-
+*/
     console.log("\n=== ESM Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
-      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G"
+      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G", 80
     );
     console.log("Playlist Info:", playlist.playlist);
 
@@ -59,19 +59,20 @@ import {
     let pageNum = 1;
     do {
       console.log(`\n--- Page ${pageNum} Videos ---`);
+      console.log("Playlist Metadata:", page.metadata);
       page.videos.forEach((v) =>
         console.log(`${v.index}. ${v.title} (${v.url})`)
       );
-      page = page.hasNextPage ? await page.nextPage() : null;
+      page = page.metadata.hasNextPage ? await page.nextPage() : null;
       pageNum++;
     } while (page);
-
+/*
     console.log("\n=== ESM Video Details Test ===");
     const videoDetails = await getVideoDetails("jfKfPfyJRdk");
     console.log(
       `${videoDetails.title} | ${videoDetails.viewsShort} Views | ${videoDetails.likesShort} Likes`
     );
-    console.log("All pages fetched successfully.");
+    console.log("All pages fetched successfully.");*/
   } catch (err) {
     console.error("ESM Test Error:", err);
   }

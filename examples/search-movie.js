@@ -1,6 +1,8 @@
 import { searchYouTube } from "ytsearch.js";
 
 (async () => {
-  const movies = await searchYouTube("Marvel", { type: "movie", limit: 3 });
-  movies.forEach((m) => console.log(m.title, m.duration, m.author.name));
+  const results = await searchYouTube("Marvel", { type: "movie" });
+  results.movies.forEach((m) =>
+    console.log(m.title, m.duration, m.author.name)
+  );
 })();

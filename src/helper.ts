@@ -362,16 +362,7 @@ export const FormatPlaylistVedioObject = (
 export const FormatPlayListInfoObject = (
   playlistInfo: any,
   playListID: string
-): PlaylistInfo => {
-  const videoCountStr =
-    playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[1]?.text?.content?.replace(
-      / videos/g,
-      ""
-    ) ?? "0";
-
-  const videoCount = parseInt(videoCountStr, 10) || 0;
-  const expectedPages = Math.ceil(videoCount / 100);
-
+): PlaylistInfo => {;
   return {
     id: playListID,
     title: playlistInfo.pageTitle ?? "",
@@ -411,13 +402,16 @@ export const FormatPlayListInfoObject = (
           ?.image?.sources?.[0]?.url ?? "",
     },
     url: PlaylistUrl + playListID,
-    videoCount: videoCountStr,
+    videoCount:
+      playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[1]?.text?.content?.replace(
+        / videos/g,
+        ""
+      ) ?? "0",
     viewsCount:
       playlistInfo.content?.pageHeaderViewModel?.metadata?.contentMetadataViewModel?.metadataRows?.[1]?.metadataParts?.[2]?.text?.content?.replace(
         / views/g,
         ""
       ) ?? "0",
-    expectedPages,
   } as PlaylistInfo;
 };
 

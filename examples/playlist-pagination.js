@@ -12,7 +12,7 @@ import { getPlaylistItems } from "ytsearch.js";
     page.videos.forEach((v) =>
       console.log(`${v.index}. ${v.title} (${v.url})`)
     );
-    page = page.hasNextPage ? await page.nextPage() : null;
+    page = page.metadata.hasNextPage ? await page.nextPage() : null;
     pageNum++;
   } while (page);
   console.log("All pages fetched successfully.");

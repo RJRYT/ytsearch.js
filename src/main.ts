@@ -26,6 +26,7 @@ import type {
   SearchResultBuffer,
   SearchResultIndex,
   SearchResultMeta,
+  PlaylistMetadata,
 } from "./types";
 import {
   FormatChannelObject,
@@ -142,7 +143,7 @@ const searchYouTube = async (
     estimatedPages: Math.ceil(fetchResponse.estimatedResults / ytPageSize), // Rough estimate
     estimatedResults: fetchResponse.estimatedResults, // From YT
     hasNextPage: !!continuationToken, // If YT provided a continuation token
-    ytPage: 0, // To track YT pages fetched
+    ytPage: 1, // To track YT pages fetched
     ytPageSize, // YT page size (usually ~20)
     userPage: 0, // To track user page for pagination
     userPageSize: userLimit, // User requested page size
@@ -293,31 +294,34 @@ const searchYouTube = async (
  * Fetches a YouTube playlist (metadata + items) and provides paginated access.
  *
  * @param playListID - The playlist ID (e.g. `"PLBCF2DAC6FFB574DE"`).
+ * @param limit - Optional user page size (10-100, default 50).
  *
  * @returns {Promise<PlaylistDetailsResult>}
  * The first page of the playlist results. Includes playlist info, video list,
- * and methods for pagination:
+ * metadata, and methods for pagination:
  *
  * ```ts
  * {
  *   playlist: PlaylistInfo;
  *   videos: PlaylistVideo[];
- *   hasNextPage: boolean;
+ *   metadata: PlaylistMetadata;
  *   nextPage: () => Promise<PlaylistDetailsResult | null>;
  * }
  * ```
  *
  * - `playlist`: Normalized playlist info.
  * - `videos`: Array of formatted video objects.
- * - `hasNextPage`: Indicates whether more videos are available.
+ * - `metadata`: Pagination and page info (ytPage, userPage, totalVideos, expectedPages, resultRange, etc.).
  * - `nextPage()`: Loads the next page, or returns `null` if no continuation exists.
  *
  * @throws {YtSearchError}
  * - If `playListID` is not a non-empty string.
+ * - If `limit` is outside the allowed range (10-100).
  * - If the playlist fetch fails or YouTube returns an invalid response.
  */
 const getPlaylistItems = async (
-  playListID: string
+  playListID: string,
+  limit?: number
 ): Promise<PlaylistDetailsResult> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
     throw new YtSearchError(
@@ -327,39 +331,80 @@ const getPlaylistItems = async (
     );
   }
 
+  const userLimit = limit ?? 50; // default user page size
+  if (userLimit < 10 || userLimit > 100) {
+    throw new YtSearchError(
+      "INVALID_LIMIT",
+      "Limit must be between 10 and 100",
+      { userLimit }
+    );
+  }
+
   try {
     const fetchResponse: RawPlaylistResult = await fetchPlayListDataFromYT(
       playListID
     );
 
-    const buildPage = (
-      videos: RawResult[],
-      continuationToken: string | null
-    ): PlaylistDetailsResult => {
+    // Buffers
+    let buffer: RawResult[] = [...fetchResponse.videos];
+    let continuation = fetchResponse.continueToken;
+
+    // Metadata tracker
+    const metadata: PlaylistMetadata = {
+      ytPage: 1, // fetched from YT
+      ytPageSize: 100, // YouTube chunk size
+      userPage: 0, // user-facing pages
+      userPageSize: userLimit,
+      hasNextPage: !!continuation || buffer.length > 0,
+      totalVideos: 0,
+      resultRange: [0, 0],
+      expectedPages: 0,
+    };
+
+    const buildPage = async (): Promise<PlaylistDetailsResult> => {
+      // Fill buffer until we can satisfy the userLimit
+      while (buffer.length < userLimit && continuation) {
+        const responseData = await fetchPlaylistNextChunk(
+          fetchResponse.apiToken,
+          continuation,
+          fetchResponse.clientVersion
+        );
+        buffer.push(...responseData.videos);
+        continuation = responseData.continueToken;
+        metadata.ytPage++;
+      }
+
+      const batch = buffer.splice(0, userLimit);
+      const start = metadata.userPage * userLimit;
+      const end = start + batch.length;
+
+      metadata.userPage++;
+      metadata.resultRange = [start, end];
+      metadata.hasNextPage = buffer.length > 0 || !!continuation;
+
+      const playlist = FormatPlayListInfoObject(
+        fetchResponse.playlistInfo,
+        playListID
+      );
+      metadata.totalVideos = parseInt(playlist.videoCount, 10) || 0;
+      metadata.expectedPages = Math.ceil(metadata.totalVideos / userLimit);
+
+      const videos = batch.map((vid) =>
+        FormatPlaylistVedioObject(vid.playlistVideoRenderer)
+      );
+
       return {
-        playlist: FormatPlayListInfoObject(
-          fetchResponse.playlistInfo,
-          playListID
-        ),
-        videos: videos.map((vid) =>
-          FormatPlaylistVedioObject(vid.playlistVideoRenderer)
-        ),
-        hasNextPage: !!continuationToken,
+        playlist,
+        videos,
+        metadata,
         nextPage: async () => {
-          if (!continuationToken) return null;
-
-          const responseData = await fetchPlaylistNextChunk(
-            fetchResponse.apiToken,
-            continuationToken,
-            fetchResponse.clientVersion
-          );
-
-          return buildPage(responseData.videos, responseData.continueToken);
+          if (!buffer.length && !continuation) return null;
+          return buildPage();
         },
       };
     };
 
-    return buildPage(fetchResponse.videos, fetchResponse.continueToken);
+    return buildPage();
   } catch (error) {
     if (error instanceof YtSearchError) throw error;
     throw new YtSearchError(

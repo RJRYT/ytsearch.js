@@ -135,7 +135,7 @@ export interface SearchResultMeta {
   sortType: SortType;
   query: string;
   resultRange: [number, number];
-};
+}
 
 /**
  * Index to track how many results of each type have been fetched.
@@ -184,6 +184,17 @@ export interface RawPlaylistResult {
   videos: RawResult[];
 }
 
+export interface PlaylistMetadata {
+  ytPage: number;
+  ytPageSize: number;
+  userPage: number;
+  userPageSize: number;
+  hasNextPage: boolean;
+  totalVideos: number;
+  resultRange: [number, number];
+  expectedPages: number;
+}
+
 /**
  * Playlist metadata extracted from YouTube.
  */
@@ -191,7 +202,6 @@ export interface PlaylistInfo extends BaseWithAuthor {
   description: string;
   videoCount: string;
   viewsCount: string;
-  expectedPages: number;
 }
 
 /**
@@ -212,7 +222,7 @@ export interface PlaylistVideo extends BaseWithAuthor {
 export interface PlaylistDetailsResult {
   playlist: PlaylistInfo;
   videos: PlaylistVideo[];
-  hasNextPage: boolean;
+  metadata: PlaylistMetadata;
   nextPage: () => Promise<PlaylistDetailsResult | null>;
 }
 
