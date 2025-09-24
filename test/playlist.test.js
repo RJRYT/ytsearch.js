@@ -23,7 +23,7 @@ describe("getPlaylistItems() API", () => {
   });
 
   it("should return null for nextPage() when no more pages", async () => {
-    const page = await getPlaylistItems(playlistID2);
+    const page = await getPlaylistItems(playlistID2, 100);
     while (page.metadata.hasNextPage) {
       page = await page.nextPage();
     }
