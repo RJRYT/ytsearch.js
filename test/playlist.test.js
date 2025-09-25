@@ -1,5 +1,7 @@
 const { getPlaylistItems } = require("../dist/main.js");
 
+jest.setTimeout(20000);
+
 describe("getPlaylistItems() API", () => {
   const playlistID1 = "PLOzDu-MXXLliO9fBNZOQTBDddoA3FzZUo"; //playlist with 960 videos
   const playlistID2 = "PLt7bG0K25iXj2h1eql20RZIPB_2CtK659"; //playlist with 60 videos

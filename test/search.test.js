@@ -1,5 +1,7 @@
 const { searchYouTube } = require("../dist/main.js");
 
+jest.setTimeout(20000); 
+
 describe("searchYouTube() API", () => {
   const query = "lofi hip hop";
 
