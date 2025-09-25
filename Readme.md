@@ -9,7 +9,7 @@
 [![Run Jest Tests][github-actions-test-image]][github-actions-test-url]
 [![Node.js Package][github-actions-npm-publish-image]][github-actions-npm-publish-url]
 
-> 🔎 A powerful yet lightweight **YouTube search wrapper for Node.js**. Fetch **videos, channels, playlists, movies, and live streams** effortlessly **without using the official API**. Supports **advanced playlist pagination with customizable user page limits**, detailed **video metadata fetching**, **sortable search results**, and **comprehensive error handling** — all via a **clean, developer-friendly API**.
+> 🔎 A powerful yet lightweight **YouTube search wrapper for Node.js**. Fetch **videos, channels, playlists, movies, and live streams** effortlessly **without using the official API**. Supports **advanced playlist pagination with customizable user page limits**, detailed **video metadata fetching**, **sortable search results**, **combined multi-type search (via `any`)**, and **comprehensive error handling** — all via a **clean, developer-friendly API**.
 
 ---
 
@@ -33,7 +33,7 @@ const { searchYouTube } = require("ytsearch.js");
 (async () => {
   const results = await searchYouTube("Black Panther", {
     type: "video",
-    limit: 5,
+    limit: 10,
   });
   results.videos.forEach((item) => console.log(item.type, item.title));
 })();
@@ -46,7 +46,7 @@ import { searchYouTube } from "ytsearch.js";
 
 const results = await searchYouTube("Black Panther", {
   type: "channel",
-  limit: 3,
+  limit: 10,
 });
 results.channels.forEach((item) => console.log(item.type, item.title));
 ```
@@ -71,13 +71,30 @@ searchYouTube(query: string, options?: SearchOptions): Promise<SearchResult>;
 
 ```ts
 interface SearchOptions {
-  type?: "video" | "channel" | "playlist" | "movie" | "live";
+  type?: "video" | "channel" | "playlist" | "movie" | "live" | "any";
   sort?: "relevance" | "upload_date" | "view_count" | "rating";
-  limit?: number;
+  limit?: number; // 10–50 (default: 20)
 }
 ```
 
-> See Examples [Here](https://github.com/RJRYT/ytsearch.js/wiki/Examples)
+#### Result
+
+```ts
+interface SearchResult {
+  videos: VideoResult[];
+  channels: ChannelResult[];
+  playlists: PlaylistResult[];
+  movies: VideoResult[];
+  lives: VideoResult[];
+  metadata: SearchMetadata;
+  nextPage: () => Promise<SearchResult | null>;
+}
+```
+
+* If `type` is **specific** (`video`, `channel`, etc.), only that array will be filled.
+* If `type` is **any**, results include `videos`, `channels`, and `playlists`. (`movies` and `lives` are grouped under `videos`).
+
+> ✅ Page size is limited to **10–50** to prevent excessive YouTube requests. Requests are buffered intelligently — YouTube is queried only when needed.
 
 ---
 
@@ -86,8 +103,10 @@ interface SearchOptions {
 Fetch a playlist with **videos and pagination support**.
 
 ```ts
-getPlaylistItems(playlistId: string): Promise<PlaylistDetailsResult>;
+getPlaylistItems(playlistId: string, limit?: number): Promise<PlaylistDetailsResult>;
 ```
+
+* `limit`: Results per page (**10–100**, default **50**).
 
 #### PlaylistDetailsResult Object
 
@@ -95,12 +114,12 @@ getPlaylistItems(playlistId: string): Promise<PlaylistDetailsResult>;
 interface PlaylistDetailsResult {
   playlist: PlaylistInfo;
   videos: PlaylistVideo[];
-  hasNextPage: boolean;
+  metadata: PlaylistMetadata;
   nextPage: () => Promise<PlaylistDetailsResult | null>;
 }
 ```
 
-> See Examples [Here](https://github.com/RJRYT/ytsearch.js/wiki/Examples)
+Metadata includes YouTube page tracking, user page size, and total video count.
 
 ---
 
@@ -111,8 +130,6 @@ Fetch detailed metadata for a specific video by **video ID**.
 ```ts
 getVideoDetails(videoID: string): Promise<VideoDetailsResult>;
 ```
-
-> See Examples [Here](https://github.com/RJRYT/ytsearch.js/wiki/Examples)
 
 ---
 
