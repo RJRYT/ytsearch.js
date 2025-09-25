@@ -31,7 +31,10 @@ Requires **Node.js v14+** (ESM supported).
 const { searchYouTube } = require("ytsearch.js");
 
 (async () => {
-  const results = await searchYouTube("Black Panther", { type: "video", limit: 5 });
+  const results = await searchYouTube("Black Panther", {
+    type: "video",
+    limit: 5,
+  });
   results.videos.forEach((item) => console.log(item.type, item.title));
 })();
 ```
@@ -41,7 +44,10 @@ const { searchYouTube } = require("ytsearch.js");
 ```js
 import { searchYouTube } from "ytsearch.js";
 
-const results = await searchYouTube("Black Panther", { type: "channel", limit: 3 });
+const results = await searchYouTube("Black Panther", {
+  type: "channel",
+  limit: 3,
+});
 results.channels.forEach((item) => console.log(item.type, item.title));
 ```
 
@@ -50,6 +56,63 @@ results.channels.forEach((item) => console.log(item.type, item.title));
 ## 📑 Documentation
 
 Full API documentation, examples, and error handling are available on the [GitHub Wiki](https://github.com/RJRYT/ytsearch.js/wiki).
+
+---
+
+## 📑 API
+
+### `searchYouTube`
+
+```ts
+searchYouTube(query: string, options?: SearchOptions): Promise<SearchResult>;
+```
+
+#### Options
+
+```ts
+interface SearchOptions {
+  type?: "video" | "channel" | "playlist" | "movie" | "live";
+  sort?: "relevance" | "upload_date" | "view_count" | "rating";
+  limit?: number;
+}
+```
+
+> See Examples [Here](https://github.com/RJRYT/ytsearch.js/wiki/Examples)
+
+---
+
+### `getPlaylistItems`
+
+Fetch a playlist with **videos and pagination support**.
+
+```ts
+getPlaylistItems(playlistId: string): Promise<PlaylistDetailsResult>;
+```
+
+#### PlaylistDetailsResult Object
+
+```ts
+interface PlaylistDetailsResult {
+  playlist: PlaylistInfo;
+  videos: PlaylistVideo[];
+  hasNextPage: boolean;
+  nextPage: () => Promise<PlaylistDetailsResult | null>;
+}
+```
+
+> See Examples [Here](https://github.com/RJRYT/ytsearch.js/wiki/Examples)
+
+---
+
+### `getVideoDetails`
+
+Fetch detailed metadata for a specific video by **video ID**.
+
+```ts
+getVideoDetails(videoID: string): Promise<VideoDetailsResult>;
+```
+
+> See Examples [Here](https://github.com/RJRYT/ytsearch.js/wiki/Examples)
 
 ---
 
