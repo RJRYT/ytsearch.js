@@ -117,7 +117,7 @@ console.log(video.title, video.author.name);
 ## ⚡ Developer Notes
 
 * **searchYouTube** supports `type`, `sort` and `limit` options.
-* **getPlaylistItems** provides a developer-friendly pagination API.
+* **getPlaylistItems** provides a developer-friendly pagination API with `limit` option.
 * **getVideoDetails** fetches detailed metadata for a specific video by ID.
 * All functions return **strictly typed** objects:
 

@@ -51,7 +51,8 @@ const {
 
     console.log("\n=== CJS Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
-      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G"
+      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G",
+      { limit: 100 }
     );
     console.log("Playlist Info:", playlist.playlist);
 

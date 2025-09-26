@@ -32,7 +32,7 @@ import {
       console.log("Channels:", nextPage.channels.length);
       console.log("Playlists:", nextPage.playlists.length);
     }
-    
+
     console.log("\n=== ESM Channel Search Test ===");
     const channels = await searchYouTube(query, {
       type: "channel",
@@ -51,7 +51,8 @@ import {
 
     console.log("\n=== ESM Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
-      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G", 80
+      "PL6fhs6TSspZt_s0zL26NmFir5ATCF8w7G",
+      { limit: 100 }
     );
     console.log("Playlist Info:", playlist.playlist);
 

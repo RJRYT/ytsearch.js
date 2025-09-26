@@ -67,7 +67,7 @@ Full API documentation, examples, and error handling are available on the [GitHu
 searchYouTube(query: string, options?: SearchOptions): Promise<SearchResult>;
 ```
 
-#### Options
+#### Search Options
 
 ```ts
 interface SearchOptions {
@@ -91,8 +91,8 @@ interface SearchResult {
 }
 ```
 
-* If `type` is **specific** (`video`, `channel`, etc.), only that array will be filled.
-* If `type` is **any**, results include `videos`, `channels`, and `playlists`. (`movies` and `lives` are grouped under `videos`).
+- If `type` is **specific** (`video`, `channel`, etc.), only that array will be filled.
+- If `type` is **any**, results include `videos`, `channels`, and `playlists`. (`movies` and `lives` are grouped under `videos`).
 
 > ✅ Page size is limited to **10–50** to prevent excessive YouTube requests. Requests are buffered intelligently — YouTube is queried only when needed.
 
@@ -103,10 +103,16 @@ interface SearchResult {
 Fetch a playlist with **videos and pagination support**.
 
 ```ts
-getPlaylistItems(playlistId: string, limit?: number): Promise<PlaylistDetailsResult>;
+getPlaylistItems(playlistId: string, options?: PlaylistOptions): Promise<PlaylistDetailsResult>;
 ```
 
-* `limit`: Results per page (**10–100**, default **50**).
+#### Playlist Options
+
+```ts
+interface PlaylistOptions {
+  limit?: number; // 10–100 (default: 50)
+}
+```
 
 #### PlaylistDetailsResult Object
 

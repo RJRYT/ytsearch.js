@@ -33,6 +33,13 @@ export interface SearchOptions {
 }
 
 /**
+ * Options for fetching playlist items.
+ */
+export interface PlaylistOptions {
+  limit?: number;
+}
+
+/**
  * Thumbnail object returned in YouTube results.
  */
 export interface Thumbnail {

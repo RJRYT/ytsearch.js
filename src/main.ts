@@ -26,6 +26,7 @@ import type {
   SearchResultIndex,
   SearchResultMeta,
   PlaylistMetadata,
+  PlaylistOptions,
 } from "./types";
 import {
   FormatChannelObject,
@@ -320,7 +321,7 @@ const searchYouTube = async (
  */
 const getPlaylistItems = async (
   playListID: string,
-  limit?: number
+  options?: PlaylistOptions
 ): Promise<PlaylistDetailsResult> => {
   if (typeof playListID !== "string" || playListID.trim() === "") {
     throw new YtSearchError(
@@ -330,7 +331,7 @@ const getPlaylistItems = async (
     );
   }
 
-  const userLimit = limit ?? 50; // default user page size
+  const userLimit = options?.limit || 50; // default user page size
   if (userLimit < 10 || userLimit > 100) {
     throw new YtSearchError(
       "INVALID_LIMIT",
@@ -505,6 +506,7 @@ export {
 
 export type {
   SearchOptions,
+  PlaylistOptions,
   SearchType,
   SortType,
   Thumbnail,
