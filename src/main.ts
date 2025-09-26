@@ -502,3 +502,19 @@ export {
   ExpectedSorts,
   YtSearchError,
 };
+
+export type {
+  SearchOptions,
+  SearchType,
+  SortType,
+  VideoResult,
+  ChannelResult,
+  PlaylistResult,
+  SearchResultMeta,
+  SearchResult,
+  PlaylistMetadata,
+  PlaylistInfo,
+  PlaylistVideo,
+  PlaylistDetailsResult,
+  VideoDetailsResult,
+} from "./types";
