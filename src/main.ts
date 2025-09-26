@@ -507,6 +507,8 @@ export type {
   SearchOptions,
   SearchType,
   SortType,
+  Thumbnail,
+  Author,
   VideoResult,
   ChannelResult,
   PlaylistResult,
