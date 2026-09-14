@@ -76,7 +76,7 @@ const fetchResultDataFromYT = async (
     });
 
     // Parse ytInitialData from the HTML response
-    const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
+    const match = html.match(/var ytInitialData = ({.*?});\s*<\/script>/s);
     if (!match) {
       throw new YtSearchError(
         "PARSE_ERROR",
@@ -205,8 +205,9 @@ const fetchPlayListDataFromYT = async (
       params: _queryOptions,
     });
 
-    // Parse ytInitialData from the HTML response
-    const match = html.match(/var ytInitialData = ({.*?});<\/script>/s);
+    // Parse ytInitialData from the HTML response. YouTube now inserts
+    // whitespace between the assignment's semicolon and the closing script.
+    const match = html.match(/var ytInitialData = ({.*?});\s*<\/script>/s);
     if (!match) {
       throw new YtSearchError(
         "PARSE_ERROR",
@@ -245,16 +246,24 @@ const fetchPlayListDataFromYT = async (
 
     const playlistInfo = initialData.header.pageHeaderRenderer;
 
-    // Find playlistVideoListRenderer
+    // Playlist pages now use `lockupViewModel` directly in the item section.
+    // Keep the legacy `playlistVideoListRenderer` path for older responses.
     let playlistData: any[] = [];
     for (const section of sectionList) {
-      if (section.itemSectionRenderer?.contents) {
-        for (const content of section.itemSectionRenderer.contents) {
+      const contents = section.itemSectionRenderer?.contents;
+      if (contents) {
+        for (const content of contents) {
           if (content.playlistVideoListRenderer) {
             playlistData = content.playlistVideoListRenderer.contents;
             break;
           }
         }
+
+        if (contents.some((content: any) => content.lockupViewModel)) {
+          playlistData = contents;
+        }
+
+        if (playlistData.length) break;
       }
     }
 
@@ -267,11 +276,11 @@ const fetchPlayListDataFromYT = async (
     }
 
     // Filter out continuation tokens (they appear for load-more)
-    const videos: RawResult[] = playlistData.filter((c) =>
-      c.hasOwnProperty("playlistVideoRenderer")
+    const videos: RawResult[] = playlistData.filter(
+      (c) => c.playlistVideoRenderer || c.lockupViewModel
     );
-    const ContinueObject: RawResult = playlistData.filter((c) =>
-      c.hasOwnProperty("continuationItemRenderer")
+    const ContinueObject: RawResult[] = playlistData.filter(
+      (c) => c.continuationItemRenderer || c.continuationItemViewModel
     );
 
     let continueToken: string | null = null;
@@ -282,6 +291,8 @@ const fetchPlayListDataFromYT = async (
         ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
           (c: any) => c.hasOwnProperty("continuationCommand")
         )?.continuationCommand?.token ??
+        ContinueObject[0]?.continuationItemViewModel?.continuationCommand
+          ?.innertubeCommand?.continuationCommand?.token ??
         null;
     }
 

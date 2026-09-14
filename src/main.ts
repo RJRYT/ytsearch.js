@@ -390,7 +390,9 @@ const getPlaylistItems = async (
       metadata.expectedPages = Math.ceil(metadata.totalVideos / userLimit);
 
       const videos = batch.map((vid) =>
-        FormatPlaylistVedioObject(vid.playlistVideoRenderer)
+        FormatPlaylistVedioObject(
+          vid.playlistVideoRenderer ?? vid.lockupViewModel
+        )
       );
 
       return {

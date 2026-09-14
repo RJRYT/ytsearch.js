@@ -37,17 +37,17 @@ const {
     const channels = await searchYouTube(query, {
       type: "channel",
       sort: "relevance",
-      limit: 2,
+      limit: 10,
     });
-    channels.forEach((c, i) => console.log(i + 1, c.title, c.url));
+    channels.channels.forEach((c, i) => console.log(i + 1, c.title, c.url));
 
     console.log("\n=== CJS Playlist Search Test ===");
     const playlists = await searchYouTube(query, {
       type: "playlist",
       sort: "view_count",
-      limit: 2,
+      limit: 10,
     });
-    playlists.forEach((p, i) => console.log(i + 1, p.title, p.url));
+    playlists.playlists.forEach((p, i) => console.log(i + 1, p.title, p.url));
 
     console.log("\n=== CJS Playlist Pagination Test ===");
     const playlist = await getPlaylistItems(
@@ -67,8 +67,8 @@ const {
       pageNum++;
     } while (page);
 
-    console.log("\n=== ESM Video Details Test ===");
-    const videoDetails = await getVideoDetails("jfKfPfyJRdk");
+    console.log("\n=== CJS Video Details Test ===");
+    const videoDetails = await getVideoDetails("gz4dgq1Os1o");
     console.log(
       `${videoDetails.title} | ${videoDetails.viewsShort} Views | ${videoDetails.likesShort} Likes`
     );

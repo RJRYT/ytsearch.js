@@ -301,6 +301,62 @@ export function parseAlerts(
 export const FormatPlaylistVedioObject = (
   videoRenderer: any
 ): PlaylistVideo => {
+  // Modern playlist pages expose a `lockupViewModel` rather than a
+  // `playlistVideoRenderer`. Normalize its fields to the public API shape.
+  if (videoRenderer?.contentType === "LOCKUP_CONTENT_TYPE_VIDEO") {
+    const metadata = videoRenderer.metadata?.lockupMetadataViewModel;
+    const thumbnail =
+      videoRenderer.contentImage?.thumbnailViewModel?.image?.sources?.[0] ??
+      {};
+    const badge = videoRenderer.contentImage?.thumbnailViewModel?.overlays
+      ?.flatMap((overlay: any) =>
+        overlay.thumbnailBottomOverlayViewModel?.badges ?? []
+      )
+      .map((item: any) => item.thumbnailBadgeViewModel)
+      .find((item: any) => item?.text)?.text;
+    const metadataRows =
+      metadata?.metadata?.contentMetadataViewModel?.metadataRows ?? [];
+    const author = metadataRows[0]?.metadataParts?.[0]?.text;
+    const authorCommand = author?.commandRuns?.[0]?.onTap?.innertubeCommand;
+    const watchCommand =
+      videoRenderer.rendererContext?.commandContext?.onTap?.innertubeCommand;
+    const watchEndpoint = watchCommand?.watchEndpoint;
+    const duration = badge ?? "00:00";
+
+    return {
+      type: "video",
+      id: videoRenderer.contentId ?? watchEndpoint?.videoId ?? "",
+      index: String((watchEndpoint?.index ?? 0) + 1),
+      title: metadata?.title?.content ?? "Untitled",
+      image: getNormalizedQueryFreeUrl(
+        ImageBaseUrl + (videoRenderer.contentId ?? "") + DefaultImageName
+      ),
+      thumbnail: {
+        url: thumbnail.url ?? "",
+        width: thumbnail.width ?? 0,
+        height: thumbnail.height ?? 0,
+      },
+      views: metadataRows[1]?.metadataParts?.[0]?.text?.content ?? "",
+      duration,
+      seconds: toSeconds(duration),
+      author: author
+        ? {
+            name: author.content ?? "",
+            url:
+              BaseUrl +
+              (authorCommand?.browseEndpoint?.canonicalBaseUrl ??
+                authorCommand?.commandMetadata?.webCommandMetadata?.url ??
+                ""),
+          }
+        : null,
+      url:
+        BaseUrl +
+        (watchCommand?.commandMetadata?.webCommandMetadata?.url ??
+          `/watch?v=${videoRenderer.contentId ?? ""}`),
+      publishedAt: metadataRows[1]?.metadataParts?.[1]?.text?.content ?? "",
+    } as PlaylistVideo;
+  }
+
   const id = videoRenderer.videoId;
   const title = videoRenderer.title.runs[0].text ?? "Untitled";
   const thumbnail: Thumbnail = {
@@ -471,12 +527,12 @@ export const fetchPlaylistNextChunk = async (
     );
   }
 
-  const videos: RawResult[] = playlistData.filter((c) =>
-    c.hasOwnProperty("playlistVideoRenderer")
+  const videos: RawResult[] = playlistData.filter(
+    (c) => c.playlistVideoRenderer || c.lockupViewModel
   );
 
-  const ContinueObject = playlistData.filter((c) =>
-    c.hasOwnProperty("continuationItemRenderer")
+  const ContinueObject = playlistData.filter(
+    (c) => c.continuationItemRenderer || c.continuationItemViewModel
   );
 
   if (ContinueObject) {
@@ -486,6 +542,8 @@ export const fetchPlaylistNextChunk = async (
       ContinueObject[0]?.continuationItemRenderer?.continuationEndpoint?.commandExecutorCommand?.commands?.find(
         (c: any) => c.hasOwnProperty("continuationCommand")
       )?.continuationCommand?.token ||
+      ContinueObject[0]?.continuationItemViewModel?.continuationCommand
+        ?.innertubeCommand?.continuationCommand?.token ||
       null;
   } else continueToken = null;
 

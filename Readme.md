@@ -13,6 +13,10 @@
 
 ---
 
+> ✅ Playlist support updated: `getPlaylistItems` supports YouTube’s latest playlist-page structure, including playlist items and pagination.
+
+---
+
 ## 🚀 Installation
 
 ```bash
