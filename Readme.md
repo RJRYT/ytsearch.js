@@ -1,4 +1,4 @@
-# ytsearch.js
+# ytsearch.js — YouTube Search & Playlist Scraper for Node.js
 
 [![NPM Version][npm-version-image]][npm-url]
 [![NPM Downloads][npm-downloads-image]][npm-downloads-url]
@@ -9,7 +9,8 @@
 [![Run Jest Tests][github-actions-test-image]][github-actions-test-url]
 [![Node.js Package][github-actions-npm-publish-image]][github-actions-npm-publish-url]
 
-> 🔎 A powerful yet lightweight **YouTube search wrapper for Node.js**. Fetch **videos, channels, playlists, movies, and live streams** effortlessly **without using the official API**. Supports **advanced playlist pagination with customizable user page limits**, detailed **video metadata fetching**, **sortable search results**, **combined multi-type search (via `any`)**, and **comprehensive error handling** — all via a **clean, developer-friendly API**.
+> A lightweight TypeScript and Node.js library to search YouTube videos, channels, playlists, movies, and live streams. Fetch playlist items with pagination and video details without using the official YouTube Data API.
+> Built for developers who need a simple YouTube search API wrapper, YouTube playlist scraper, or video metadata scraper in Node.js.
 
 ---
 
@@ -24,6 +25,17 @@ npm install ytsearch.js
 ```
 
 Requires **Node.js v14+** (ESM supported).
+
+---
+
+## Features
+
+- Search YouTube videos, channels, playlists, movies, and live streams
+- Fetch YouTube playlist items with pagination
+- Get detailed YouTube video metadata
+- Use TypeScript types with CommonJS and ESM support
+- Search YouTube without an official YouTube Data API key
+- Control result limits and sorting
 
 ---
 
@@ -65,7 +77,7 @@ Full API documentation, examples, and error handling are available on the [GitHu
 
 ## 📑 API
 
-### `searchYouTube`
+### YouTube Search API — `searchYouTube`
 
 ```ts
 searchYouTube(query: string, options?: SearchOptions): Promise<SearchResult>;
@@ -102,7 +114,7 @@ interface SearchResult {
 
 ---
 
-### `getPlaylistItems`
+### Get YouTube Playlist Items — `getPlaylistItems`
 
 Fetch a playlist with **videos and pagination support**.
 
@@ -133,13 +145,29 @@ Metadata includes YouTube page tracking, user page size, and total video count.
 
 ---
 
-### `getVideoDetails`
+### Get YouTube Video Details — `getVideoDetails`
 
 Fetch detailed metadata for a specific video by **video ID**.
 
 ```ts
 getVideoDetails(videoID: string): Promise<VideoDetailsResult>;
 ```
+
+---
+
+## FAQ
+
+### Does ytsearch.js require a YouTube Data API key?
+
+No. ytsearch.js fetches publicly available YouTube page data and does not require an official YouTube Data API key.
+
+### Can I fetch videos from a YouTube playlist?
+
+Yes. Use `getPlaylistItems()` to retrieve playlist metadata and videos. Large playlists support pagination through `nextPage()`.
+
+### Does ytsearch.js support TypeScript?
+
+Yes. The package includes TypeScript declarations and supports both CommonJS and ESM imports.
 
 ---
 
