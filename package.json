@@ -1,6 +1,6 @@
 {
   "name": "ytsearch.js",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "TypeScript YouTube search and playlist scraper for Node.js. Search videos, channels, playlists, movies, and live streams, with playlist pagination, without the YouTube Data API.",
   "main": "dist/main.js",
   "module": "dist/main.mjs",
