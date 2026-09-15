@@ -32,17 +32,18 @@
   },
   "keywords": [
     "youtube",
-    "youtube api",
-    "youtube scraper",
-    "youtube search",
+    "yt-search",
+    "youtube-scraper",
+    "youtube-search",
+    "youtube-playlist",
     "ytsearch",
     "ytsearch.js",
-    "yt api wrapper",
+    "youtube api",
+    "scrape-youtube",
+    "youtube-scrape",
+    "youtube-api",
     "nodejs",
-    "typescript",
-    "video search",
-    "playlist search",
-    "channel search"
+    "typescript"
   ],
   "dependencies": {
     "axios": "^1.12.0"
