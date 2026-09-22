@@ -1,6 +1,6 @@
 {
   "name": "ytsearch.js",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "TypeScript YouTube search and data library for Node.js. Search videos, channels, playlists, movies, and live streams, fetch video details and paginated playlist items, without the YouTube Data API.",
   "main": "dist/main.js",
   "module": "dist/main.mjs",
