@@ -1,5 +1,9 @@
 # ytsearch.js — YouTube Search & Playlist Scraper for Node.js
 
+> **ytsearch.js** is a TypeScript and Node.js library for searching YouTube videos, channels, playlists, movies, and live streams. It also provides video details and paginated playlist data without requiring the official YouTube Data API.
+
+Built for developers who need a YouTube search library, playlist scraper, video metadata scraper, or YouTube Data API alternative for Node.js and TypeScript.
+
 [![NPM Version][npm-version-image]][npm-url]
 [![NPM Downloads][npm-downloads-image]][npm-downloads-url]
 [![NPM Install Size][npm-install-size-image]][npm-install-size-url]
@@ -8,13 +12,6 @@
 [![NPM Type Definitions][npm-ts-support]][npm-url]
 [![Run Jest Tests][github-actions-test-image]][github-actions-test-url]
 [![Node.js Package][github-actions-npm-publish-image]][github-actions-npm-publish-url]
-
-> A lightweight TypeScript and Node.js library to search YouTube videos, channels, playlists, movies, and live streams. Fetch playlist items with pagination and video details without using the official YouTube Data API.
-> Built for developers who need a simple YouTube search API wrapper, YouTube playlist scraper, or video metadata scraper in Node.js.
-
----
-
-> ✅ Playlist support updated: `getPlaylistItems` supports YouTube’s latest playlist-page structure, including playlist items and pagination.
 
 ---
 
@@ -36,7 +33,6 @@ Requires **Node.js v14+** (ESM supported).
 - Use TypeScript types with CommonJS and ESM support
 - Search YouTube without an official YouTube Data API key
 - Control result limits and sorting
-
 ---
 
 ## 📦 Usage
@@ -69,9 +65,17 @@ results.channels.forEach((item) => console.log(item.type, item.title));
 
 ---
 
-## 📑 Documentation
+## 📚 Documentation
 
-Full API documentation, examples, and error handling are available on the [GitHub Wiki](https://github.com/RJRYT/ytsearch.js/wiki).
+Full API documentation, usage examples, TypeScript types, and error handling are available in the [ytsearch.js GitHub Wiki](https://github.com/RJRYT/ytsearch.js/wiki).
+
+---
+
+## 🖥️ Command-Line Interface
+
+Need to use YouTube search directly from your terminal?
+
+Check out [ytsearch-cli](https://www.npmjs.com/package/ytsearch-cli), the command-line interface powered by ytsearch.js.
 
 ---
 
@@ -183,7 +187,7 @@ Yes. The package includes TypeScript declarations and supports both CommonJS and
 
 ## 📜 License
 
-MIT © 2025 RJRYT
+MIT © 2026 RJRYT
 
 ---
 
